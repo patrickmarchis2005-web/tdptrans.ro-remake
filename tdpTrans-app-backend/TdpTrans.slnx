@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="TdpTrans.Controllers/TdpTrans.Controllers.csproj" />
+  <Project Path="TdpTrans.DTOs/TdpTrans.DTOs.csproj" />
+  <Project Path="TdpTrans.Models/TdpTrans.Models.csproj" />
+  <Project Path="TdpTrans.Repositories/TdpTrans.Repositories.csproj" />
+  <Project Path="TdpTrans.Services/TdpTrans.Services.csproj" />
+</Solution>

@@ -1,0 +1,150 @@
+.pageWrapper {
+  background-color: #F7FAFC;
+  font-family: sans-serif;
+}
+
+.header {
+  background-color: #2D3748;
+  color: white;
+  padding: 10px 10%; /* Spatiu pe margini */
+  display: flex;
+  flex-direction: column; /* Pune bar de sus si titlul pe verticala */
+}
+
+/* Stil pentru primul rând (bara subțire) */
+.topBar {
+  display: flex;
+  justify-content: space-between; /* Impinge tdptrans.ro la stanga si butoanele la dreapta */
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.navRight {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.navRight a {
+  color: white;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+/* Stil pentru rândul al doilea (zona de Brand) */
+.mainHeader {
+  padding: 10px 0;
+  text-align: left; /* Aliniaza titlul la stanga sub domeniu */
+}
+
+.mainTitle {
+  font-size: 3.5rem; /* Titlu mare si impunator */
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 40px;
+}
+
+.subSubtitle {
+  font-size: 1.2rem;
+}
+
+.navButton {
+  background-color: #ff8c00;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.navButton:hover {
+  background-color: #e67e00;
+}
+
+/* HERO */
+.heroSection {
+  width: 100%;
+  overflow: hidden;
+}
+
+.heroImage {
+  width: 100%;
+  height: 450px;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.orangeDivider {
+  height: 10px;
+  background-color: #ff8c00;
+}
+
+/* INTRO */
+.introSection {
+  display: flex;
+  align-items: center;
+  padding:10px 15%;
+  /* background: white; */
+}
+
+.roundLogo {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+}
+
+.introText {
+  margin-left: 40px;
+  text-align: left;
+  color: #000;
+}
+
+.introText h2 {
+  color: #000;
+}
+
+
+/* CONTENT */
+.contentSection {
+  align-items: center;
+  padding: 10px 10%;
+  text-align: left;
+  line-height: 1.4;
+  color: #000;
+}
+
+.welcomeText h2 {
+  color: #000;
+  font-weight: 600;
+}
+
+.ordersBtn {
+  font-size: 0.9rem;
+  background: #ff8c00;
+  color: white;
+  border: none;
+  margin: 10px;
+  padding: 8px 15px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.ordersBtn:hover {
+  background-color: #e67e00;
+}
+
+
+/* FOOTER */
+.footer {
+  background-color: #2D3748;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  font-weight: bold;
+  font-size: medium;
+}

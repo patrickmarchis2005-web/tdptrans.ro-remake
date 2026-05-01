@@ -1,0 +1,48 @@
+# =========================
+# REACT / NODE.JS (Frontend)
+# =========================
+# Dependinte
+node_modules/
+/.pnp
+.pnp.js
+
+# Fisiere de build (productie)
+/frontend/build/
+/frontend/dist/
+
+# Fisiere de mediu (Variabile secrete)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Jurnale de erori npm/yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# .NET / C# (Backend)
+# =========================
+# Foldere de build (trebuie ignorate obligatoriu)
+[Bb]in/
+[Oo]bj/
+
+# Fisiere specifice utilizatorului (setari locale Visual Studio)
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Configuratii locale si fisiere secrete
+appsettings.Development.json
+appsettings.Local.json
+
+# Fisiere generate de IDE-uri (Rider, VS Code)
+.idea/
+.vscode/
+
+# Mac OS (Daca folosesti Mac)
+.DS_Store

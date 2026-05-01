@@ -1,0 +1,72 @@
+.authContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #43526B;
+  font-family: sans-serif;
+}
+
+.authContainer h1 {
+  color: white;
+  margin-bottom: 20px;
+  font-size: 2rem;
+}
+
+.card {
+  background: #F7FAFC;
+  padding: 40px;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.card h2 {
+  margin-bottom: 25px;
+  color: #333;
+  font-weight: bold;
+}
+
+.card form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.card input {
+  padding: 15px;
+  border: 2px solid lightgrey;
+  background-color: #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.card button {
+  background-color: #2D3748;
+  color: white;
+  padding: 15px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.card button:hover {
+  background-color: #1a252f;
+}
+
+.card p {
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: #666;
+  cursor: pointer;
+}
+
+.card p:hover {
+  text-decoration: underline;
+}

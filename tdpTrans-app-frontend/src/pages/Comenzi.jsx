@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './Comenzi.module.css';
-import { getPaginatedItems } from '../utils.js'
-import { missionsStore } from '../store/missionsStore.js';
+// Am scos importul vechi 'missionsStore' pentru că nu mai avem nevoie de el
 import Grafice from '../components/Grafice';
 import { fetchMissions, createMission, updateMission, deleteMission, fetchStatistics } from '../api/missionsApi';
-
 
 function Comenzi() {
   const [missions, setMissions] = useState([]); 
@@ -31,14 +29,15 @@ function Comenzi() {
     setIsLoading(false);
   };
 
-  useEffect(() => {
-    const aduStatisticile = async () => {
+  const incarcaStatisticile = async () => {
         const data = await fetchStatistics();
         if (data) {
             setStats(data);
         }
     };
-    aduStatisticile();
+
+  useEffect(() => {
+    incarcaStatisticile();
   }, []);
   
   useEffect(() => {
@@ -55,7 +54,7 @@ function Comenzi() {
   }, [searchTerm]);
 
   const selectedMission = missions.find(mission => mission.id === selectedId) || {
-    id: '', type: '', truckId: '', date: '', cost: '', client: '', phone: '', address: ''
+    id: '', missionType: '', truckId: '', date: '', cost: '', client: '', phone: '', address: '', missionStatus: ''
   };
 
   const handleCloseModal = () => {
@@ -66,7 +65,7 @@ function Comenzi() {
   const handleAddNew = () => {
     setSelectedId(null);
     setIsAdding(true);
-    setFormData({ id: '', type: '', truckId: '', date: '', cost: '', client: '', phone: '', address: '', status: 'Noua' })
+    setFormData({ id: '', missionType: '', truckId: '', date: '', cost: '', client: '', phone: '', address: '', missionStatus: '' });
   };
 
   const handleDelete = async () => {
@@ -74,6 +73,7 @@ function Comenzi() {
     
     if (success) {
         await incarcaDatele(currentPage);
+        await incarcaStatisticile();
         setSelectedId(null);
         handleCloseModal();
     } else {
@@ -82,16 +82,27 @@ function Comenzi() {
   };
 
   const handleUpdate = async () => {
-    console.log("Date trimise la validare: ", formData);
-
     try {
+      const dataToSend = { ...formData };
+      
+      dataToSend.cost = Number(dataToSend.cost) || 0;
+      dataToSend.truckId = Number(dataToSend.truckId) || 0;
+      if (!dataToSend.date || dataToSend.date.trim() === '') {
+        dataToSend.date = new Date().toISOString();
+      }
+      
       if (isAdding) {
-          await createMission(formData);
+        delete dataToSend.id;
+        console.log("Date trimise la POST (fără ID): ", dataToSend);
+        await createMission(dataToSend);
       } else {
-          await updateMission(formData.id, formData);
+        dataToSend.id = Number(dataToSend.id) || 0;
+        console.log("Date trimise la PUT (cu ID): ", dataToSend);
+        await updateMission(dataToSend.id, dataToSend);
       }
 
       await incarcaDatele(currentPage);
+      await incarcaStatisticile();
       
       setIsAdding(false);
       alert("Salvat cu succes!");
@@ -121,7 +132,6 @@ function Comenzi() {
         <Link to="/acasa" className={styles.homeBtn}>Inapoi Acasa</Link>
         <button className={styles.addBtn} onClick={handleAddNew}>Adauga comanda</button>
 
-        {/* TODO: momentan nu merge */}
         <div className={styles.searchBar}>
           <input
             type="text"
@@ -139,6 +149,7 @@ function Comenzi() {
               onClick={() => { setSelectedId(mission.id); setIsAdding(false); setFormData(mission) }}
             >
               <div className={styles.itemInfo}>
+                {/* CORECJIE 4: mission.client, mission.id, mission.phone */}
                 <span className={styles.itemName}>{mission.client}</span>
                 <span className={styles.itemSub}>ID: #{mission.id} | {mission.phone}</span>
               </div>
@@ -173,25 +184,35 @@ function Comenzi() {
               <div className={styles.avatar}><i className="far fa-user"></i></div>
               <div>
                 <h1>{isAdding ? "Adaugă Comandă Nouă" : selectedMission.client}</h1>
-                <p>Statusul Comenzii: {selectedMission.status}</p>
+                <p>Statusul Comenzii: {selectedMission.missionStatus}</p>
               </div>
             </header>
 
             <section className={styles.infoSection}>
               <h3>Informații Generale</h3>
               <div className={styles.grid}>
+                {/* CORECJIE 5: Toate atributele 'name' trecute cu literă mică la început */}
                 <div><label>Nume Client</label><input name='client' type="text" value={formData.client || ''} onChange={handleChange} /></div>
                 <div><label>Nr. de Telefon</label><input name='phone' type="text" value={formData.phone || ''} onChange={handleChange} /></div>
                 <div><label>Email</label><input name='email' type="text" value={formData.email || ''} onChange={handleChange} /></div>
                 <div>
                   <label>Tip Comanda</label>
-                  <select name='type' value={formData.type || ''} onChange={handleChange}>
+                  <select name='missionType' value={formData.missionType || ''} onChange={handleChange}>
                     <option value="">Alege tipul...</option>
                     <option value="Tractare">Tractare</option>
                     <option value="Transport">Transport</option>
                   </select>
                 </div>
                 <div><label>ID Camion</label><input name='truckId' type="text" value={formData.truckId || ''} onChange={handleChange} /></div>
+                <div>
+                  <label>Status Comanda</label>
+                  <select name='missionStatus' value={formData.missionStatus || ''} onChange={handleChange}>
+                    <option value="">Alege statusul...</option>
+                    <option value="Programata">Programata</option>
+                    <option value="In_desfasurare">In desfasurare</option>
+                    <option value="Finalizata">Finalizata</option>
+                  </select>
+                </div>
               </div>
             </section>
 
@@ -199,7 +220,7 @@ function Comenzi() {
               <h3>Locația Comenzii & Costul</h3>
               <div className={styles.grid}>
                 <div className={styles.fullWidth}><label>Adresa</label><input name='address' type="text" value={formData.address || ''} onChange={handleChange} /></div>
-                <div><label>Data</label><input name='date' type="date" value={formData.date || ''} onChange={handleChange} /></div>
+                <div><label>Data</label><input name='date' type="date" value={formData.date ? formData.date.split('T')[0] : ''} onChange={handleChange} /></div>
                 <div><label>Cost Total</label><input name='cost' type="text" value={formData.cost || ''} onChange={handleChange} /></div>
               </div>
             </section>

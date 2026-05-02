@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import styles from '../pages/Comenzi.module.css';
 
@@ -59,4 +59,4 @@ const Grafice = ({stats}) => {
   );
 };
 
-export default Grafice;
+export default memo(Grafice);

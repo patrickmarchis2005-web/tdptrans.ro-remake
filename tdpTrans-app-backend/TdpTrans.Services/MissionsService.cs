@@ -13,7 +13,6 @@ namespace TdpTrans.Services
     public class MissionsService : IMissionsService
     {
         private readonly IMissionsRepository _missionsRepository;
-        private int _missionId = 1;
 
         public MissionsService(IMissionsRepository missionsRepository)
         {
@@ -33,6 +32,8 @@ namespace TdpTrans.Services
                 throw new ArgumentException($"Invalid mission status: {request.MissionStatus}");
             }
 
+            var _missions = await _missionsRepository.GetAllMissions();
+            var _missionId = _missions.Any() ? _missions.Max(m => m.Id) + 1 : 1;
             var mission = new Mission
             (
                 _missionId,
@@ -48,7 +49,7 @@ namespace TdpTrans.Services
             );
 
             await _missionsRepository.AddMission(mission);
-            return _missionId++;
+            return _missionId;
         }
 
         public async Task DeleteMissionById(int id)

@@ -8,7 +8,7 @@ namespace TdpTrans.DTOs
 {
     public record MissionResponse(
         int Id,
-        string Type,
+        string MissionType,
         int TruckId,
         DateTime Date,
         decimal Cost,
@@ -16,7 +16,7 @@ namespace TdpTrans.DTOs
         string Phone,
         string Address,
         string Email,
-        string Status
+        string MissionStatus
     )
     {
     }

@@ -11,7 +11,8 @@ namespace TdpTrans.Services
     {
         Task<int> AddMission(CreateMissionRequest request);
         Task<IEnumerable<MissionResponse>> GetAllMissions();
-        Task<PaginatedResult> GetMissionsPaginated(int page, int pageSize);
+        Task<PaginatedResult> GetMissionsPaginated(int page, int pageSize, string? searchTerm = null);
+        Task<MissionStatisticsDTO> GetMissionStatistics();
         Task<MissionResponse?> GetMissionById(int id);
         Task<int> UpdateMissionById(int id, UpdateMissionRequest request);
         Task DeleteMissionById(int id);

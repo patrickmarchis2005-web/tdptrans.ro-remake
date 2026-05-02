@@ -1,5 +1,3 @@
-// src/api/missionsApi.js
-
 const BASE_URL = 'https://localhost:5152/api/missions';
 
 // 1. GET: aduc comenzile (cu paginare)

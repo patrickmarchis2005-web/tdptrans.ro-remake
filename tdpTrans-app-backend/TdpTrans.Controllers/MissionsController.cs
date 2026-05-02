@@ -37,11 +37,11 @@ namespace TdpTrans.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<PaginatedResult>> GetMissionsPaginated([FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<ActionResult<PaginatedResult>> GetMissionsPaginated([FromQuery] int page = 1, [FromQuery] int pageSize = 5, [FromQuery] string? search = null)
         {
             try
             {
-                var paginatedResult = await _missionsService.GetMissionsPaginated(page, pageSize);
+                var paginatedResult = await _missionsService.GetMissionsPaginated(page, pageSize, search);
                 return Ok(paginatedResult);
             }
             catch (ArgumentException exception)
@@ -50,8 +50,15 @@ namespace TdpTrans.Controllers
             }
         }
 
+        [HttpGet("statistics")]
+        public async Task<ActionResult<MissionStatisticsDTO>> GetStatistics()
+        {
+            var statistics = await _missionsService.GetMissionStatistics();
+            return Ok(statistics);
+        }
+
         [HttpGet]
-        [Route("/{id:int}")]
+        [Route("{id:int}")]
         public async Task<ActionResult<MissionResponse?>> GetMissionById([FromRoute] int id)
         {
             var mission = await _missionsService.GetMissionById(id);
@@ -61,7 +68,7 @@ namespace TdpTrans.Controllers
         }
 
         [HttpPut]
-        [Route("/{id:int}")]
+        [Route("{id:int}")]
         public async Task<ActionResult<int>> UpdateMissionById([FromRoute] int id, [FromBody] UpdateMissionRequest request)
         {
             try
@@ -76,7 +83,7 @@ namespace TdpTrans.Controllers
         }
 
         [HttpDelete]
-        [Route("/{id:int}")]
+        [Route("{id:int}")]
         public async Task<ActionResult> DeleteMissionById([FromRoute] int id)
         {
             try

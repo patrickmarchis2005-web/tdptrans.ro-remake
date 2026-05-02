@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TdpTrans.DTOs;
 using TdpTrans.Models;
 
 namespace TdpTrans.Repositories
@@ -23,9 +24,21 @@ namespace TdpTrans.Repositories
             return Task.CompletedTask;
         }
 
-        public Task<IEnumerable<Mission>> GetAllMissions()
+        public Task<IEnumerable<Mission>> GetAllMissions(string? searchTerm = null)
         {
-            return Task.FromResult<IEnumerable<Mission>>(_missions);
+            var query = _missions.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                searchTerm = searchTerm.ToLower();
+                query = query.Where(m =>
+                    (m.Client != null && m.Client.ToLower().Contains(searchTerm)) ||
+                    (m.Phone != null && m.Phone.Contains(searchTerm)) ||
+                    m.Id.ToString().Contains(searchTerm)
+                );
+            }
+
+            return Task.FromResult<IEnumerable<Mission>>(query.ToList());
         }
 
         public Task<Mission?> GetMissionById(int missionId)

@@ -80,7 +80,7 @@ namespace TdpTrans.Services
                 .FirstOrDefault();
         }
 
-        public async Task<PaginatedResult> GetMissionsPaginated(int page, int pageSize)
+        public async Task<PaginatedResult> GetMissionsPaginated(int page, int pageSize, string? searchTerm = null)
         {
             if (page <= 0)
             {
@@ -91,17 +91,29 @@ namespace TdpTrans.Services
                 throw new ArgumentException("Page size must be a positive integer.");
             }
 
-            var missions = await _missionsRepository.GetAllMissions();
+            var missions = await _missionsRepository.GetAllMissions(searchTerm);
             var missionsResponse = missions.Select(mission => Mapper.FromMissionToDTO(mission));
+            var totalCount = missionsResponse.Count();
 
             var paginatedResult = new PaginatedResult
             {
                 Items = missionsResponse.Skip((page - 1) * pageSize).Take(pageSize).ToList(),
-                TotalCount = missionsResponse.Count(),
+                TotalCount = totalCount,
                 CurrentPage = page,
                 PageSize = pageSize
             };
             return paginatedResult;
+        }
+
+        public async Task<MissionStatisticsDTO> GetMissionStatistics()
+        {
+            var missions = await _missionsRepository.GetAllMissions();
+            return new MissionStatisticsDTO
+            {
+                TotalComenzi = missions.Count(),
+                TotalTransportMarfa = missions.Count(m => m.Type == MissionType.Transport),
+                TotalTractari = missions.Count(m => m.Type == MissionType.Tractare)
+            };
         }
 
         public async Task<int> UpdateMissionById(int id, UpdateMissionRequest request)

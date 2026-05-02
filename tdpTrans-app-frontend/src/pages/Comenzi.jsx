@@ -1,19 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './Comenzi.module.css';
 import { getPaginatedItems } from '../utils.js'
 import { missionsStore } from '../store/missionsStore.js';
 import Grafice from '../components/Grafice';
+import { fetchMissions, createMission, updateMission, deleteMission } from '../api/missionsApi';
 
 
 function Comenzi() {
-  const [missions, setMissions] = useState(missionsStore.getAll());
+  const [missions, setMissions] = useState([]); 
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedId, setSelectedId] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
+  
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4;
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 5;
+
+  useEffect(() => {
+    incarcaDatele(currentPage);
+  }, [currentPage]);
+
+  const incarcaDatele = async (page) => {
+    setIsLoading(true);
+    const data = await fetchMissions(page, itemsPerPage);
+    
+    if (data) {
+        setMissions(data.items); 
+        setTotalPages(data.totalPages);
+    }
+    setIsLoading(false);
+  };
 
   const selectedMission = missions.find(mission => mission.id === selectedId) || {
     id: '', type: '', truckId: '', date: '', cost: '', client: '', phone: '', address: ''
@@ -27,29 +46,38 @@ function Comenzi() {
   const handleAddNew = () => {
     setSelectedId(null);
     setIsAdding(true);
-    setFormData({ id: '', type: '', truckId: '', date: '', cost: '', client: '', phone: '', email: '', address: '', status: 'Noua' })
+    setFormData({ id: '', type: '', truckId: '', date: '', cost: '', client: '', phone: '', address: '', status: 'Noua' })
   };
 
-  const handleDelete = () => {
-    const updatedList = missionsStore.deleteMission(selectedId);
-    setMissions(updatedList);
-    setSelectedId(null);
-    handleCloseModal();
+  const handleDelete = async () => {
+    const success = await deleteMission(selectedId);
+    
+    if (success) {
+        await incarcaDatele(currentPage);
+        setSelectedId(null);
+        handleCloseModal();
+    } else {
+        alert("A apărut o eroare la ștergerea comenzii.");
+    }
   };
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     console.log("Date trimise la validare: ", formData);
 
     try {
-      const missionResult = missionsStore.saveMission(formData, isAdding);
+      if (isAdding) {
+          await createMission(formData);
+      } else {
+          await updateMission(formData.id, formData);
+      }
 
-      setMissions(missionsStore.getAll());
+      await incarcaDatele(currentPage);
+      
       setIsAdding(false);
-      setSelectedId(missionResult.id);
       alert("Salvat cu succes!");
       handleCloseModal();
     } catch (err) {
-      alert(err.message);
+      alert("Eroare de la server: " + err.message);
     }
   };
 
@@ -58,14 +86,9 @@ function Comenzi() {
     setFormData({ ...formData, [name]: value});
   }
 
-  const filteredMissions = missions.filter(mission => 
-    mission.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    mission.phone.includes(searchTerm) ||
-    mission.id.toString().includes(searchTerm)
-  );
-
-  const { currentItems, totalPages } = getPaginatedItems(filteredMissions, currentPage, itemsPerPage);
-
+  if (isLoading) {
+    return <div style={{ textAlign: 'center', marginTop: '50px' }}><h2>Se încarcă datele de pe server... 🚚</h2></div>;
+  }
 
   return (
     <div className={styles.dashboard}>
@@ -77,6 +100,8 @@ function Comenzi() {
         </div>
         <Link to="/acasa" className={styles.homeBtn}>Inapoi Acasa</Link>
         <button className={styles.addBtn} onClick={handleAddNew}>Adauga comanda</button>
+
+        {/* TODO: momentan nu merge */}
         <div className={styles.searchBar}>
           <input
             type="text"
@@ -87,7 +112,7 @@ function Comenzi() {
         </div>
         
         <div className={styles.masterList}>
-          {currentItems.map(mission => (
+          {missions.map(mission => (
             <div
               key={mission.id}
               className={`${styles.masterItem} ${selectedId === mission.id ? styles.active : ''}`}
@@ -100,8 +125,8 @@ function Comenzi() {
             </div>
           ))}
 
-          {currentItems.length === 0 && (
-            <p className={styles.noResults}>Nu am gasit niciun client cu acest nume...</p>
+          {missions.length === 0 && (
+            <p className={styles.noResults}>Nu exista comenzi de afisat...<br></br>Ne pare rău!</p>
           )}
 
           <div className={styles.pagination}>

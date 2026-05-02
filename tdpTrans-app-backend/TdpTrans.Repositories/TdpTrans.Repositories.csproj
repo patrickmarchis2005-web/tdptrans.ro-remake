@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TdpTrans.Models\TdpTrans.Models.csproj" />
+    <ProjectReference Include="..\TdpTrans.DTOs\TdpTrans.DTOs.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

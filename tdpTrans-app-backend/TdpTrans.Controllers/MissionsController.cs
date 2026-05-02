@@ -29,7 +29,7 @@ namespace TdpTrans.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("all")]
         public async Task<ActionResult<IEnumerable<MissionResponse>>> GetAllMissions()
         {
             var missions = await _missionsService.GetAllMissions();

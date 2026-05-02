@@ -4,7 +4,7 @@ import styles from './Comenzi.module.css';
 import { getPaginatedItems } from '../utils.js'
 import { missionsStore } from '../store/missionsStore.js';
 import Grafice from '../components/Grafice';
-import { fetchMissions, createMission, updateMission, deleteMission } from '../api/missionsApi';
+import { fetchMissions, createMission, updateMission, deleteMission, fetchStatistics } from '../api/missionsApi';
 
 
 function Comenzi() {
@@ -14,25 +14,45 @@ function Comenzi() {
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
+  const [stats, setStats] = useState({ totalComenzi: 0, totalTransportMarfa: 0, totalTractari: 0 });
   
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 5;
 
+  const incarcaDatele = async (page, search = searchTerm) => {
+    setIsLoading(true);
+    const data = await fetchMissions(page, itemsPerPage, search);
+    
+    if (data) {
+      setMissions(data.items); 
+      setTotalPages(data.totalPages);
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    const aduStatisticile = async () => {
+        const data = await fetchStatistics();
+        if (data) {
+            setStats(data);
+        }
+    };
+    aduStatisticile();
+  }, []);
+  
   useEffect(() => {
     incarcaDatele(currentPage);
   }, [currentPage]);
 
-  const incarcaDatele = async (page) => {
-    setIsLoading(true);
-    const data = await fetchMissions(page, itemsPerPage);
-    
-    if (data) {
-        setMissions(data.items); 
-        setTotalPages(data.totalPages);
-    }
-    setIsLoading(false);
-  };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+        setCurrentPage(1);
+        incarcaDatele(1, searchTerm);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const selectedMission = missions.find(mission => mission.id === selectedId) || {
     id: '', type: '', truckId: '', date: '', cost: '', client: '', phone: '', address: ''
@@ -139,7 +159,7 @@ function Comenzi() {
 
       {/* zona principala (charts) */}
       <main className={styles.mainContent}>
-        <Grafice /> 
+        <Grafice stats={stats} /> 
       </main>
 
       {/* modalul pentru formular (partea de detail) */}

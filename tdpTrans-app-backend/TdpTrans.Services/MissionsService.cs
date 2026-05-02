@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TdpTrans.Repositories;
 using TdpTrans.DTOs;
 using TdpTrans.Models;
+using TdpTrans.Repositories;
 
 namespace TdpTrans.Services
 {
@@ -108,11 +109,27 @@ namespace TdpTrans.Services
         public async Task<MissionStatisticsDTO> GetMissionStatistics()
         {
             var missions = await _missionsRepository.GetAllMissions();
+            var groupedByMonth = missions
+                .GroupBy(m => m.Date.ToString("MMM", CultureInfo.InvariantCulture))
+                .Select(group => new MonthlyStatisticDTO
+                {
+                    Name = group.Key,
+                    Towing = group.Count(m => m.Type == MissionType.Tractare),
+                    Transport = group.Count(m => m.Type == MissionType.Transport)
+                })
+                .ToList();
+
+            var monthOrder = new List<string> { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Unknown" };
+            var sortedMonthlyData = groupedByMonth
+                .OrderBy(m => monthOrder.IndexOf(m.Name))
+                .ToList();
+
             return new MissionStatisticsDTO
             {
                 TotalComenzi = missions.Count(),
                 TotalTransportMarfa = missions.Count(m => m.Type == MissionType.Transport),
-                TotalTractari = missions.Count(m => m.Type == MissionType.Tractare)
+                TotalTractari = missions.Count(m => m.Type == MissionType.Tractare),
+                MonthlyData = sortedMonthlyData
             };
         }
 

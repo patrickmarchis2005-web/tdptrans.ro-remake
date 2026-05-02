@@ -1,9 +1,15 @@
-const BASE_URL = 'https://localhost:5152/api/missions';
+const BASE_URL = 'http://localhost:5152/api/missions';
 
 // 1. GET: aduc comenzile (cu paginare)
-export const fetchMissions = async (page = 1, limit = 5) => {
+export const fetchMissions = async (page = 1, limit = 5, searchTerm = '') => {
     try {
-        const response = await fetch(`${BASE_URL}?page=${page}&limit=${limit}`);
+        let url = `${BASE_URL}?page=${page}&limit=${limit}`;
+        
+        if (searchTerm) {
+            url += `&search=${encodeURIComponent(searchTerm)}`;
+        }
+
+        const response = await fetch(url);
         if (!response.ok) throw new Error('Eroare la aducerea comenzilor');
         return await response.json(); 
     } catch (error) {

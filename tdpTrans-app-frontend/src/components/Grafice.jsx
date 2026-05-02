@@ -1,37 +1,14 @@
 import React from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { missionsStore } from '../store/missionsStore';
 import styles from '../pages/Comenzi.module.css';
 
-const Grafice = () => {
-  const missions = missionsStore.getAll();
-
+const Grafice = ({stats}) => {
   const pieData = [
-    { name: 'Towing', value: missions.filter(m => m.type.toLowerCase() === 'tractare').length },
-    { name: 'Transport', value: missions.filter(m => m.type.toLowerCase() === 'transport').length },
+    { name: 'Towing', value: stats?.totalTractari || 0 },
+    { name: 'Transport', value: stats?.totalTransportMarfa || 0 },
   ];
 
-  const monthlyData = missions.reduce((acc, m) => {
-    const month = m.date ? new Date(m.date).toLocaleString('en-US', { month: 'short' }) : 'Unknown';
-    const existing = acc.find(item => item.name === month);
-    
-    const safeType = m.type ? m.type.toString().trim().toLowerCase() : '';
-
-    if (existing) {
-      if (safeType === 'tractare' || safeType === 'towing') existing.towing++;
-      if (safeType === 'transport') existing.transport++;
-    } else {
-      acc.push({ 
-        name: month, 
-        towing: (safeType === 'tractare' || safeType === 'towing') ? 1 : 0, 
-        transport: safeType === 'transport' ? 1 : 0 
-      });
-    }
-    return acc;
-  }, []);
-
-  const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Unknown'];
-  monthlyData.sort((a, b) => monthOrder.indexOf(a.name) - monthOrder.indexOf(b.name));
+  const monthlyData = stats?.monthlyData || [];
 
   const COLORS = ['#49dbdb', '#2a7e7e'];
   return (
@@ -52,7 +29,7 @@ const Grafice = () => {
           </PieChart>
         </div>
         <div className={styles.pieDetails}>
-          <h3>Total missions: {missions.length}</h3>
+          <h3>Total missions: {stats.totalCount}</h3>
           <p><span className={styles.colorBoxTowing}></span> Tractare: {pieData[0].value}</p>
           <p><span className={styles.colorBoxTransport}></span> Transport: {pieData[1].value}</p>
         </div>

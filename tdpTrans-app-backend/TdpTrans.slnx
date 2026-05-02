@@ -4,4 +4,5 @@
   <Project Path="TdpTrans.Models/TdpTrans.Models.csproj" />
   <Project Path="TdpTrans.Repositories/TdpTrans.Repositories.csproj" />
   <Project Path="TdpTrans.Services/TdpTrans.Services.csproj" />
+  <Project Path="TdpTrans.Tests/TdpTrans.Tests.csproj" />
 </Solution>

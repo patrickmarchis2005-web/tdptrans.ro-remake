@@ -10,7 +10,7 @@ namespace TdpTrans.Repositories
 {
     public interface IMissionsRepository
     {
-        Task AddMission(Mission mission);
+        Task<Mission> AddMission(Mission mission);
         Task<IEnumerable<Mission>> GetAllMissions(string? searchTerm = null);
         Task<Mission?> GetMissionById(int missionId);
         Task DeleteMission(Mission mission);

@@ -1,28 +1,34 @@
 import { z } from 'zod';
 
-
 export const missionSchema = z.object({
   client: z.string().min(3, "Numele clientului trebuie sa aiba minim 3 caractere"),
 
-  phone: z.string().regex(/^[0-9+ \-]+$/, "Numarul de telefon contine caractere invalide"),
+  phone: z.coerce.string()
+    .min(10, "Numarul de telefon e prea scurt")
+    .regex(/^[0-9+ \-]+$/, "Numarul de telefon contine caractere invalide"),
 
   email: z.string().email("Format email invalid"),
 
-  cost: z.string().refine(val => {9
-    const num = parseFloat(val.replace('$', ''));
-    return !isNaN(num) && num > 0;
-  }, "Costul trebuie sa fie un numar pozitiv"),
+  cost: z.coerce.number({
+      invalid_type_error: "Costul trebuie să fie un număr valid"
+    })
+    .positive("Costul trebuie sa fie un numar mai mare decat 0"),
 
-  type: z.string().toLowerCase()
-    .refine(val => ["transport", "tractare"].includes(val), "Tipul comenzii trebuie sa fie 'Transport' sau 'Tractare'"),
+  missionType: z.enum(["Transport", "Tractare"], {
+    invalid_type_error: "Tipul comenzii trebuie sa fie 'Transport' sau 'Tractare'",
+    required_error: "Tipul comenzii este obligatoriu"
+  }),
 
-  truckId: z.string().regex(/^[0-9]{6}$/, "ID-ul camionului este obligatoriu"),
+  truckId: z.coerce.string().regex(/^[0-9]{6}$/, "ID-ul camionului trebuie sa contina fix 6 cifre!"),
   
   address: z.string().min(5, "Adresa este prea scurta"),
 
-  date: z.string(),
+  date: z.string().min(1, "Data este obligatorie!"),
 
-  status: z.string()
+  missionStatus: z.enum(["Programata", "In_desfasurare", "Finalizata"], {
+    invalid_type_error: "Statusul comenzii trebuie sa fie 'Programata', 'In_desfasurare' sau 'Finalizata'",
+    required_error: "Statusul comenzii este obligatoriu"
+  })
 });
 
 

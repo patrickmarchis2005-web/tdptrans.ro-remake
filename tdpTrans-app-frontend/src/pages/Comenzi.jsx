@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './Comenzi.module.css';
-// Am scos importul vechi 'missionsStore' pentru că nu mai avem nevoie de el
+import { missionSchema } from '../utils.js'
 import Grafice from '../components/Grafice';
 import { fetchMissions, createMission, updateMission, deleteMission, fetchStatistics } from '../api/missionsApi';
 
@@ -82,6 +82,13 @@ function Comenzi() {
   };
 
   const handleUpdate = async () => {
+    try {
+      missionSchema.parse(formData);
+    } catch (err) {
+      alert("Eroare de validare: " + err.issues[0].message);
+      return;
+    }
+
     try {
       const dataToSend = { ...formData };
       

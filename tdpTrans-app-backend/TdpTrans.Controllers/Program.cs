@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using TdpTrans.Repositories;
 using TdpTrans.Services;
 
@@ -12,6 +13,12 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        b => b.MigrationsAssembly("TdpTrans.Repositories")
+    ));
 
 builder.Services.AddSingleton<IMissionsRepository, InMemoryMissionsRepository>();
 builder.Services.AddScoped<IMissionsService, MissionsService>();

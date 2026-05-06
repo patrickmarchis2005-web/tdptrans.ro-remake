@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TdpTrans.Repositories;
+using TdpTrans.Repositories.Implementations;
+using TdpTrans.Repositories.Interfaces;
 using TdpTrans.Services;
 
 var builder = WebApplication.CreateBuilder(args);

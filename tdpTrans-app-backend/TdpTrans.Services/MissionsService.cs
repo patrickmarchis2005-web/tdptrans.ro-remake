@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TdpTrans.DTOs;
 using TdpTrans.Models;
-using TdpTrans.Repositories;
+using TdpTrans.Repositories.Interfaces;
 
 namespace TdpTrans.Services
 {

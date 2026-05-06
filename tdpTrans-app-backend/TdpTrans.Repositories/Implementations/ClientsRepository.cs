@@ -1,8 +1,9 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using TdpTrans.Models;
+using TdpTrans.Repositories.Interfaces;
 
-namespace TdpTrans.Repositories
+namespace TdpTrans.Repositories.Implementations
 {
     public class ClientsRepository : IClientsRepository
     {

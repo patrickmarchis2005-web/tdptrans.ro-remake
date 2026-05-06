@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TdpTrans.Models;
 
-namespace TdpTrans.Repositories
+namespace TdpTrans.Repositories.Interfaces
 {
     public interface ITrucksRepository
     {

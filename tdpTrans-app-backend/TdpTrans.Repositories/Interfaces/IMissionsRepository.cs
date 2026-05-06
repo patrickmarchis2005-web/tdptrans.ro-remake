@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using TdpTrans.DTOs;
 using TdpTrans.Models;
 
-namespace TdpTrans.Repositories
+namespace TdpTrans.Repositories.Interfaces
 {
     public interface IMissionsRepository
     {

@@ -5,8 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TdpTrans.Models;
+using TdpTrans.Repositories.Interfaces;
 
-namespace TdpTrans.Repositories
+namespace TdpTrans.Repositories.Implementations
 {
     public class MissionsRepository : IMissionsRepository
     {

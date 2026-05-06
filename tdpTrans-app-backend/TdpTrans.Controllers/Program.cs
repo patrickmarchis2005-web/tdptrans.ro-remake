@@ -20,7 +20,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         b => b.MigrationsAssembly("TdpTrans.Repositories")
     ));
 
-builder.Services.AddSingleton<IMissionsRepository, InMemoryMissionsRepository>();
+builder.Services.AddScoped<IMissionsRepository, MissionsRepository>();
+builder.Services.AddScoped<IClientsRepository, ClientsRepository>();
+builder.Services.AddScoped<ITrucksRepository, TrucksRepository>();
+
 builder.Services.AddScoped<IMissionsService, MissionsService>();
 
 builder.Services.AddControllers();

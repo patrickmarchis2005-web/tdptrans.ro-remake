@@ -19,10 +19,10 @@ namespace TdpTrans.Services
                 mission.TruckId,
                 mission.Date,
                 mission.Cost,
-                mission.Client,
-                mission.Phone,
+                mission.Client.Name,
+                mission.Client.Phone,
                 mission.Address,
-                mission.Email,
+                mission.Client.Email,
                 mission.Status.ToString()
             );
         }

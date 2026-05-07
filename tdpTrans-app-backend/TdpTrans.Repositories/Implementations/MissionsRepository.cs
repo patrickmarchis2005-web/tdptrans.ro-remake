@@ -35,10 +35,18 @@ namespace TdpTrans.Repositories.Implementations
         public async Task<IEnumerable<Mission>> GetAllMissions(string? searchTerm = null)
         {
             return searchTerm.IsNullOrEmpty() ? 
-                await _context.Missions.ToListAsync() : 
-                await _context.Missions.Where(m => (m.Client.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                                        m.Client.Phone.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                                        m.Id.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase))).ToListAsync();
+                await _context.Missions
+                    .Include(m => m.Client)
+                    .Include(m => m.Truck)
+                    .AsQueryable().ToListAsync() : 
+                await _context.Missions
+                    .Include(m => m.Client)
+                    .Include(m => m.Truck)
+                    .Where(m => (m.Client.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                                m.Client.Phone.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                                m.Id.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                    .AsQueryable()
+                    .ToListAsync();
         }
 
         public async Task<Mission?> GetMissionById(int missionId)

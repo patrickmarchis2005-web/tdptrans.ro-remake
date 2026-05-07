@@ -1,4 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using TdpTrans.Repositories;
+using TdpTrans.Repositories.Implementations;
+using TdpTrans.Repositories.Interfaces;
 using TdpTrans.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,7 +16,16 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddSingleton<IMissionsRepository, InMemoryMissionsRepository>();
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        b => b.MigrationsAssembly("TdpTrans.Repositories")
+    ));
+
+builder.Services.AddScoped<IMissionsRepository, MissionsRepository>();
+builder.Services.AddScoped<IClientsRepository, ClientsRepository>();
+builder.Services.AddScoped<ITrucksRepository, TrucksRepository>();
+
 builder.Services.AddScoped<IMissionsService, MissionsService>();
 
 builder.Services.AddControllers();

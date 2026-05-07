@@ -156,7 +156,6 @@ function Comenzi() {
               onClick={() => { setSelectedId(mission.id); setIsAdding(false); setFormData(mission) }}
             >
               <div className={styles.itemInfo}>
-                {/* CORECJIE 4: mission.client, mission.id, mission.phone */}
                 <span className={styles.itemName}>{mission.client}</span>
                 <span className={styles.itemSub}>ID: #{mission.id} | {mission.phone}</span>
               </div>
@@ -198,7 +197,6 @@ function Comenzi() {
             <section className={styles.infoSection}>
               <h3>Informații Generale</h3>
               <div className={styles.grid}>
-                {/* CORECJIE 5: Toate atributele 'name' trecute cu literă mică la început */}
                 <div><label>Nume Client</label><input name='client' type="text" value={formData.client || ''} onChange={handleChange} /></div>
                 <div><label>Nr. de Telefon</label><input name='phone' type="text" value={formData.phone || ''} onChange={handleChange} /></div>
                 <div><label>Email</label><input name='email' type="text" value={formData.email || ''} onChange={handleChange} /></div>

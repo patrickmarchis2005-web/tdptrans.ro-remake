@@ -2,21 +2,26 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using TdpTrans.DTOs;
 using TdpTrans.Models;
-using TdpTrans.Repositories;
+using TdpTrans.Repositories.Interfaces;
 
 namespace TdpTrans.Services
 {
     public class MissionsService : IMissionsService
     {
         private readonly IMissionsRepository _missionsRepository;
+        private readonly IClientsRepository _clientsRepository;
+        private readonly ITrucksRepository _trucksRepository;
 
-        public MissionsService(IMissionsRepository missionsRepository)
+        public MissionsService(IMissionsRepository missionsRepository, IClientsRepository clientsRepository, ITrucksRepository trucksRepository)
         {
             _missionsRepository = missionsRepository;
+            _clientsRepository = clientsRepository;
+            _trucksRepository = trucksRepository;
         }
 
 
@@ -26,30 +31,42 @@ namespace TdpTrans.Services
             {
                 throw new ArgumentException($"Invalid mission type: {request.MissionType}");
             }
-
             if (!Enum.TryParse<MissionStatus>(request.MissionStatus, out var missionStatus))
             {
                 throw new ArgumentException($"Invalid mission status: {request.MissionStatus}");
             }
 
-            var _missions = await _missionsRepository.GetAllMissions();
-            var _missionId = _missions.Any() ? _missions.Max(m => m.Id) + 1 : 1;
-            var mission = new Mission
-            (
-                _missionId,
-                missionType,
-                request.TruckId,
-                request.Date,
-                request.Cost,
-                request.Client,
-                request.Phone,
-                request.Address,
-                request.Email,
-                missionStatus
-            );
+            var client = await _clientsRepository.GetClientByEmail(request.Email);
+            if (client == null)
+            {
+                client = new Client
+                {
+                    Name = request.Client,
+                    Phone = request.Phone,
+                    Email = request.Email
+                };
+                await _clientsRepository.AddClient(client);
+            }
 
-            await _missionsRepository.AddMission(mission);
-            return _missionId;
+            var truck = await _trucksRepository.GetTruckById(request.TruckId);
+            if (truck == null)
+            {
+                throw new ArgumentException($"Truck with ID {request.TruckId} not found in the database.");
+            }
+
+            var mission = new Mission
+            {
+                Type = missionType,
+                Status = missionStatus,
+                Date = request.Date,
+                Cost = request.Cost,
+                Address = request.Address,
+                ClientId = client.Id,
+                TruckId = truck.Id
+            };
+
+            var createdMission = await _missionsRepository.AddMission(mission);
+            return createdMission.Id;
         }
 
         public async Task DeleteMissionById(int id)
@@ -75,11 +92,10 @@ namespace TdpTrans.Services
 
         public async Task<MissionResponse?> GetMissionById(int id)
         {
-            var missions = await _missionsRepository.GetAllMissions();
-            return missions
-                .Where(mission => mission.Id == id)
-                .Select(mission => Mapper.FromMissionToDTO(mission))
-                .FirstOrDefault();
+            var mission = await _missionsRepository.GetMissionById(id);
+            if (mission == null)
+                return null;
+            return Mapper.FromMissionToDTO(mission);
         }
 
         public async Task<PaginatedResult> GetMissionsPaginated(int page, int pageSize, string? searchTerm = null)
@@ -171,11 +187,11 @@ namespace TdpTrans.Services
             }
             if (request.Client != null)
             {
-                searchedMission.Client = request.Client;
+                searchedMission.Client.Name = request.Client;
             }
             if (request.Phone != null)
             {
-                searchedMission.Phone = request.Phone;
+                searchedMission.Client.Phone = request.Phone;
             }
             if (request.Address != null)
             {
@@ -183,7 +199,7 @@ namespace TdpTrans.Services
             }
             if (request.Email != null)
             {
-                searchedMission.Email = request.Email;
+                searchedMission.Client.Email = request.Email;
             }
 
             return searchedMission.Id;

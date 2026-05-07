@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +34,7 @@ namespace TdpTrans.Repositories.Implementations
 
         public async Task<IEnumerable<Mission>> GetAllMissions(string? searchTerm = null)
         {
-            return searchTerm == null ? 
+            return searchTerm.IsNullOrEmpty() ? 
                 await _context.Missions.ToListAsync() : 
                 await _context.Missions.Where(m => (m.Client.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                                         m.Client.Phone.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||

@@ -22,17 +22,15 @@ namespace TdpTrans.Repositories
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Client>().HasData(
-                new Client { Id = 1, Name = "Tech Logistics SRL", Phone = "0722111222", Email = "contact@techlog.ro" },
-                new Client { Id = 2, Name = "Auto Depanare SA", Phone = "0733444555", Email = "office@autodepanare.ro" },
-                new Client { Id = 3, Name = "Ion Popescu", Phone = "0744999888", Email = "ion.popescu@gmail.com" }
-            );
+            var client1 = new Client { Id = 1, Name = "Tech Logistics SRL", Phone = "0722111222", Email = "contact@techlog.ro" };
+            var client2 = new Client { Id = 2, Name = "Auto Depanare SA", Phone = "0733444555", Email = "office@autodepanare.ro" };
+            var client3 = new Client { Id = 3, Name = "Ion Popescu", Phone = "0744999888", Email = "ion.popescu@gmail.com" };
+            modelBuilder.Entity<Client>().HasData(client1, client2, client3);
 
-            modelBuilder.Entity<Truck>().HasData(
-                new Truck { Id = 123456, LicensePlate = "CJ 99 TEST" },
-                new Truck { Id = 654321, LicensePlate = "B 101 DEV" },
-                new Truck { Id = 112233, LicensePlate = "TM 50 RAP" }
-            );
+            var truck1 = new Truck { Id = 123456, LicensePlate = "CJ 99 TEST" };
+            var truck2 = new Truck { Id = 654321, LicensePlate = "B 101 DEV" };
+            var truck3 = new Truck { Id = 112233, LicensePlate = "TM 50 RAP" };
+            modelBuilder.Entity<Truck>().HasData(truck1, truck2, truck3);
 
             modelBuilder.Entity<Mission>().HasData(
                 new Mission

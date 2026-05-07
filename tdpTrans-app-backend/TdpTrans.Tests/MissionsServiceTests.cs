@@ -16,13 +16,17 @@ namespace TdpTrans.Tests
 {
     public class MissionsServiceTests
     {
-        private readonly Mock<IMissionsRepository> _mockRepo;
+        private readonly Mock<IMissionsRepository> _mockMissionsRepo;
+        private readonly Mock<ITrucksRepository> _mockTrucksRepo;
+        private readonly Mock<IClientsRepository> _mockClientsRepo;
         private readonly MissionsService _service;
 
         public MissionsServiceTests()
         {
-            _mockRepo = new Mock<IMissionsRepository>();
-            _service = new MissionsService(_mockRepo.Object);
+            _mockMissionsRepo = new Mock<IMissionsRepository>();
+            _mockClientsRepo = new Mock<IClientsRepository>();
+            _mockTrucksRepo = new Mock<ITrucksRepository>();
+            _service = new MissionsService(_mockMissionsRepo.Object, _mockClientsRepo.Object, _mockTrucksRepo.Object);
         }
 
         [Fact]
@@ -73,47 +77,89 @@ namespace TdpTrans.Tests
         public async Task AddMission_WithValidData_ReturnsNewId()
         {
             // Arrange
-            var existingMissions = new List<Mission>
+            var mission1 = new Mission
             {
-                new(
-                    1,
-                    MissionType.Transport,
-                    100400,
-                    new DateTime(2026, 5, 1),
-                    100m,
-                    "Client 1",
-                    "0705123456",
-                    "Str. Campului nr. 2",
-                    "client1@gmail.com",
-                    MissionStatus.Programata
-                ),
-                new(
-                    2,
-                    MissionType.Transport,
-                    100401,
-                    new DateTime(2026, 5, 2),
-                    200m,
-                    "Client 2",
-                    "0705123457",
-                    "Str. Campului nr. 3",
-                    "client2@gmail.com",
-                    MissionStatus.Programata
-                )
+                Id = 1,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 1),
+                Cost = 100m,
+                Address = "Str. Campului nr. 2",
+                ClientId = 101,
+                TruckId = 100400
             };
+            var mission2 = new Mission
+            {
+                Id = 2,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 200m,
+                Address = "Str. Campului nr. 3",
+                ClientId = 102,
+                TruckId = 100401
+            };
+            var expectedMissionResult = new Mission
+            {
+                Id = 3,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 1),
+                Cost = 300m,
+                Address = "Str. Campului nr. 3",
+                ClientId = 101,
+                TruckId = 100400
+            };
+            var existingMissions = new List<Mission>();
+            existingMissions.AddRange(mission1, mission2);
 
-            _mockRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(existingMissions);
-            _mockRepo.Setup(repo => repo.AddMission(It.IsAny<Mission>())).Returns(Task.CompletedTask);
+
+            var truck1 = new Truck
+            {
+                Id = 100400,
+                LicensePlate = "CJ 10 AAA"
+            };
+            var truck2 = new Truck
+            {
+                Id = 100401,
+                LicensePlate = "CJ 11 AAA"
+            };
+            var existingTrucks = new List<Truck>();
+            existingTrucks.AddRange(truck1, truck2);
+
+
+            var client1 = new Client
+            {
+                Id = 101,
+                Name = "Client 1",
+                Phone = "0705123456",
+                Email = "client1@gmail.com"
+            };
+            var client2 = new Client
+            {
+                Id = 102,
+                Name = "Client 2",
+                Phone = "0705123457",
+                Email = "client2@gmail.com"
+            };
+            var existingClients = new List<Client>();
+            existingClients.AddRange(client1, client2);
+
+
+            _mockClientsRepo.Setup(repo => repo.GetClientByEmail("client1@gmail.com")).ReturnsAsync(client1);
+            _mockTrucksRepo.Setup(repo => repo.GetTruckById(100400)).ReturnsAsync(truck1);
+            _mockMissionsRepo.Setup(repo => repo.AddMission(It.IsAny<Mission>())).ReturnsAsync(expectedMissionResult);
 
             var request = new CreateMissionRequest
             (
                 "Transport",
                 100400,
                 new DateTime(2026, 5, 1),
-                100m,
-                "Client Nou",
+                300m,
+                "Client 1",
                 "0705123456",
-                "Str. Campului nr. 2",
-                "client@yahoo.com",
+                "Str. Campului nr. 3",
+                "client1@gmail.com",
                 "Programata"
             );
 
@@ -122,7 +168,7 @@ namespace TdpTrans.Tests
 
             // Assert
             Assert.Equal(3, newId);
-            _mockRepo.Verify(repo => repo.AddMission(It.IsAny<Mission>()), Times.Once);
+            _mockMissionsRepo.Verify(repo => repo.AddMission(It.IsAny<Mission>()), Times.Once);
         }
 
         [Fact]
@@ -131,19 +177,63 @@ namespace TdpTrans.Tests
             // Arrange
             var existingMissions = new List<Mission>();
 
-            _mockRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(existingMissions);
-            _mockRepo.Setup(repo => repo.AddMission(It.IsAny<Mission>())).Returns(Task.CompletedTask);
+            var truck1 = new Truck
+            {
+                Id = 100400,
+                LicensePlate = "CJ 10 AAA"
+            };
+            var truck2 = new Truck
+            {
+                Id = 100401,
+                LicensePlate = "CJ 11 AAA"
+            };
+            var existingTrucks = new List<Truck>();
+            existingTrucks.AddRange(truck1, truck2);
+
+
+            var client1 = new Client
+            {
+                Id = 101,
+                Name = "Client 1",
+                Phone = "0705123456",
+                Email = "client1@gmail.com"
+            };
+            var client2 = new Client
+            {
+                Id = 102,
+                Name = "Client 2",
+                Phone = "0705123457",
+                Email = "client2@gmail.com"
+            };
+            var existingClients = new List<Client>();
+            existingClients.AddRange(client1, client2);
+
+            var expectedMissionResult = new Mission
+            {
+                Id = 1,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 1),
+                Cost = 100m,
+                Address = "Str. Campului nr. 2",
+                ClientId = 101,
+                TruckId = 100400
+            };
+
+            _mockClientsRepo.Setup(repo => repo.GetClientByEmail("client1@gmail.com")).ReturnsAsync(client1);
+            _mockTrucksRepo.Setup(repo => repo.GetTruckById(100400)).ReturnsAsync(truck1);
+            _mockMissionsRepo.Setup(repo => repo.AddMission(It.IsAny<Mission>())).ReturnsAsync(expectedMissionResult);
 
             var request = new CreateMissionRequest
             (
                 "Transport",
                 100400,
                 new DateTime(2026, 5, 1),
-                100m,
-                "Client Nou",
+                300m,
+                "Client 1",
                 "0705123456",
                 "Str. Campului nr. 2",
-                "client@yahoo.com",
+                "client1@gmail.com",
                 "Programata"
             );
 
@@ -152,11 +242,11 @@ namespace TdpTrans.Tests
 
             // Assert
             Assert.Equal(1, newId);
-            _mockRepo.Verify(repo => repo.AddMission(It.IsAny<Mission>()), Times.Once);
+            _mockMissionsRepo.Verify(repo => repo.AddMission(It.IsAny<Mission>()), Times.Once);
         }
 
         [Fact]
-        public async Task DeleteMissionById_WithNegaticeId_ThrowsArgumentException()
+        public async Task DeleteMissionById_WithNegativeId_ThrowsArgumentException()
         {
             // Arrange
             int invalidId = -1;
@@ -164,7 +254,7 @@ namespace TdpTrans.Tests
             // Act & Assert
             var exception = await Assert.ThrowsAsync<ArgumentException>(() => _service.DeleteMissionById(invalidId));
             Assert.Contains("Mission ID must be a positive integer.", exception.Message);
-            _mockRepo.Verify(repo => repo.DeleteMission(It.IsAny<Mission>()), Times.Never);
+            _mockMissionsRepo.Verify(repo => repo.DeleteMission(It.IsAny<Mission>()), Times.Never);
         }
 
         [Fact]
@@ -173,10 +263,36 @@ namespace TdpTrans.Tests
             // Arrange
             int nonExistingId = 999;
 
+            var mission1 = new Mission
+            {
+                Id = 1,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 1),
+                Cost = 100m,
+                Address = "Str. Campului nr. 2",
+                ClientId = 101,
+                TruckId = 100400
+            };
+            var mission2 = new Mission
+            {
+                Id = 2,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 200m,
+                Address = "Str. Campului nr. 3",
+                ClientId = 102,
+                TruckId = 100401
+            };
+            var existingMissions = new List<Mission>();
+            existingMissions.AddRange(mission1, mission2);
+            _mockMissionsRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(existingMissions);
+
             // Act & Assert
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.DeleteMissionById(nonExistingId));
             Assert.Contains($"Mission with ID {nonExistingId} not found.", exception.Message);
-            _mockRepo.Verify(repo => repo.DeleteMission(It.IsAny<Mission>()), Times.Never);
+            _mockMissionsRepo.Verify(repo => repo.DeleteMission(It.IsAny<Mission>()), Times.Never);
         }
 
         [Fact]
@@ -184,62 +300,73 @@ namespace TdpTrans.Tests
         {
             // Arrange
             int existingId = 1;
-            var existingMission = new Mission
-            (
-                existingId,
-                MissionType.Transport,
-                100400,
-                new DateTime(2026, 5, 1),
-                100m,
-                "Client 1",
-                "0705123456",
-                "Str. Campului nr. 2",
-                "client1@gmail.com",
-                MissionStatus.Programata
-            );
-
-            _mockRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(new List<Mission> { existingMission });
-            _mockRepo.Setup(repo => repo.DeleteMission(existingMission)).Returns(Task.CompletedTask);
+            var mission1 = new Mission
+            {
+                Id = 1,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 1),
+                Cost = 100m,
+                Address = "Str. Campului nr. 2",
+                ClientId = 101,
+                TruckId = 100400
+            };
+            var mission2 = new Mission
+            {
+                Id = 2,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 200m,
+                Address = "Str. Campului nr. 3",
+                ClientId = 102,
+                TruckId = 100401
+            };
+            var existingMissions = new List<Mission>();
+            existingMissions.AddRange(mission1, mission2);
+            _mockMissionsRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(existingMissions);
+            _mockMissionsRepo.Setup(repo => repo.DeleteMission(It.IsAny<Mission>())).Returns(Task.CompletedTask);
 
             // Act
             await _service.DeleteMissionById(existingId);
 
             // Assert
-            _mockRepo.Verify(repo => repo.DeleteMission(existingMission), Times.Once);
+            _mockMissionsRepo.Verify(repo => repo.DeleteMission(It.IsAny<Mission>()), Times.Once);
         }
 
         [Fact]
         public async Task GetAllMissions_ValidCase_ReturnsMappedMissions()
         {
             // Arrange
-            var fakeMissions = new List<Mission>
+            var mission1 = new Mission
             {
-                new(
-                    1,
-                    MissionType.Transport,
-                    100400,
-                    new DateTime(2026, 5, 1),
-                    100m,
-                    "Client 1",
-                    "0705123456",
-                    "Str. Campului nr. 2",
-                    "client1@gmail.com",
-                    MissionStatus.Programata
-                ),
-                new(
-                    2,
-                    MissionType.Transport,
-                    100401,
-                    new DateTime(2026, 5, 2),
-                    200m,
-                    "Client 2",
-                    "0705123457",
-                    "Str. Campului nr. 3",
-                    "client2@gmail.com",
-                    MissionStatus.Programata
-                )
+                Id = 1,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 1),
+                Cost = 100m,
+                Address = "Str. Campului nr. 2",
+                ClientId = 101,
+                Client = new Client { Name = "Test Client1", Email = "test2@test.com" },
+                TruckId = 100400,
+                Truck = new Truck { LicensePlate = "CJ 99 TST" }
             };
-            _mockRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(fakeMissions);
+            var mission2 = new Mission
+            {
+                Id = 2,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 200m,
+                Address = "Str. Campului nr. 3",
+                ClientId = 102,
+                Client = new Client { Name = "Test Client2", Email = "test1@test.com" },
+                TruckId = 100401,
+                Truck = new Truck { LicensePlate = "CJ 98 TST" }
+            };
+            var existingMissions = new List<Mission>();
+            existingMissions.AddRange(mission1, mission2);
+            _mockMissionsRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(existingMissions);
 
             // Act
             var result = await _service.GetAllMissions();
@@ -247,76 +374,52 @@ namespace TdpTrans.Tests
             // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count());
-            _mockRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
+            _mockMissionsRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
         }
 
         [Fact]
         public async Task GetMissionById_WhenMissionExists_ReturnsCorrectMission()
         {
             // Arrange
-            var fakeMissions = new List<Mission>
+            var mission1 = new Mission
             {
-                new(
-                    1,
-                    MissionType.Transport,
-                    100400,
-                    new DateTime(2026, 5, 1),
-                    100m,
-                    "Client 1",
-                    "0705123456",
-                    "Str. Campului nr. 2",
-                    "client1@gmail.com",
-                    MissionStatus.Programata
-                ),
-                new(
-                    2,
-                    MissionType.Transport,
-                    100401,
-                    new DateTime(2026, 5, 2),
-                    200m,
-                    "Client 2",
-                    "0705123457",
-                    "Str. Campului nr. 3",
-                    "client2@gmail.com",
-                    MissionStatus.Programata
-                )
+                Id = 1,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 1),
+                Cost = 100m,
+                Address = "Str. Campului nr. 2",
+                ClientId = 101,
+                Client = new Client { Name = "Test Client", Email = "test@test.com" },
+                TruckId = 100400,
+                Truck = new Truck { LicensePlate = "CJ 99 TST" }
             };
-            _mockRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(fakeMissions);
+            var existingMissions = new List<Mission>();
+            existingMissions.AddRange(mission1);
+            _mockMissionsRepo.Setup(repo => repo.GetMissionById(1)).ReturnsAsync(mission1);
 
             // Act
             var result = await _service.GetMissionById(1);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("Client 1", result.Client);
+            Assert.Equal("Transport", result.MissionType);
         }
 
         [Fact]
         public async Task GetMissionById_WhenMissionDoesNotExist_ReturnsNull()
         {
             // Arrange
-            var fakeMissions = new List<Mission>
-            {
-                new(
-                    1,
-                    MissionType.Transport,
-                    100400,
-                    new DateTime(2026, 5, 1),
-                    100m,
-                    "Client 1",
-                    "0705123456",
-                    "Str. Campului nr. 2",
-                    "client1@gmail.com",
-                    MissionStatus.Programata
-                )
-            };
-            _mockRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(fakeMissions);
+            _mockMissionsRepo
+                .Setup(repo => repo.GetMissionById(100))
+                .ReturnsAsync((Mission)null);
 
             // Act
             var result = await _service.GetMissionById(100);
 
             // Assert
             Assert.Null(result);
+            _mockMissionsRepo.Verify(repo => repo.GetMissionById(100), Times.Once);
         }
 
         [Fact]
@@ -339,47 +442,48 @@ namespace TdpTrans.Tests
         public async Task GetMissionsPaginated_WithValidParameters_ReturnsPaginatedResult()
         {
             // Arrange
-            var fakeMissions = new List<Mission>
+            var mission1 = new Mission
             {
-                new(
-                    1,
-                    MissionType.Transport,
-                    100400,
-                    new DateTime(2026, 5, 1),
-                    100m,
-                    "Client 1",
-                    "0705123456",
-                    "Str. Campului nr. 2",
-                    "client1@gmail.com",
-                    MissionStatus.Programata
-                ),
-                new(
-                    2,
-                    MissionType.Transport,
-                    100401,
-                    new DateTime(2026, 5, 2),
-                    200m,
-                    "Client 2",
-                    "0705123457",
-                    "Str. Campului nr. 3",
-                    "client2@gmail.com",
-                    MissionStatus.Programata
-                ),
-                new(
-                    3,
-                    MissionType.Transport,
-                    100402,
-                    new DateTime(2026, 5, 3),
-                    300m,
-                    "Client 3",
-                    "0705123458",
-                    "Str. Campului nr. 4",
-                    "client3@gmail.com",
-                    MissionStatus.Programata
-                )
+                Id = 1,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 1),
+                Cost = 100m,
+                Address = "Str. Campului nr. 2",
+                ClientId = 101,
+                Client = new Client { Name = "Test Client1", Email = "test1@test.com" },
+                TruckId = 100400,
+                Truck = new Truck { LicensePlate = "CJ 99 TST" }
             };
-
-            _mockRepo.Setup(repo => repo.GetAllMissions(It.IsAny<string>())).ReturnsAsync(fakeMissions);
+            var mission2 = new Mission
+            {
+                Id = 2,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 200m,
+                Address = "Str. Campului nr. 3",
+                ClientId = 102,
+                Client = new Client { Name = "Test Client2", Email = "test2@test.com" },
+                TruckId = 100401,
+                Truck = new Truck { LicensePlate = "CJ 98 TST" }
+            };
+            var mission3 = new Mission
+            {
+                Id = 3,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 300m,
+                Address = "Str. Campului nr. 4",
+                ClientId = 101,
+                Client = new Client { Name = "Test Client1", Email = "test1@test.com" },
+                TruckId = 100400,
+                Truck = new Truck { LicensePlate = "CJ 99 TST" }
+            };
+            var existingMissions = new List<Mission>();
+            existingMissions.AddRange(mission1, mission2, mission3);
+            _mockMissionsRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(existingMissions);
 
             // Act
             var result = await _service.GetMissionsPaginated(page: 2, pageSize: 2);
@@ -394,46 +498,42 @@ namespace TdpTrans.Tests
         public async Task GetMissionStatistics_ValidCase_ReturnsCorrectCalculations()
         {
             // 1. ARRANGE
-            var fakeMissions = new List<Mission>
+            var mission1 = new Mission
             {
-                new(
-                    1,
-                    MissionType.Transport,
-                    100400,
-                    new DateTime(2026, 4, 1),
-                    100m,
-                    "Client 1",
-                    "0705123456",
-                    "Str. Campului nr. 2",
-                    "client1@gmail.com",
-                    MissionStatus.Programata
-                ),
-                new(
-                    2,
-                    MissionType.Transport,
-                    100401,
-                    new DateTime(2026, 5, 2),
-                    200m,
-                    "Client 2",
-                    "0705123457",
-                    "Str. Campului nr. 3",
-                    "client2@gmail.com",
-                    MissionStatus.Programata
-                ),
-                new(
-                    3,
-                    MissionType.Tractare,
-                    100402,
-                    new DateTime(2026, 5, 3),
-                    300m,
-                    "Client 3",
-                    "0705123458",
-                    "Str. Campului nr. 4",
-                    "client3@gmail.com",
-                    MissionStatus.Programata
-                )
+                Id = 1,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 4, 1),
+                Cost = 100m,
+                Address = "Str. Campului nr. 2",
+                ClientId = 101,
+                TruckId = 100400
             };
-            _mockRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(fakeMissions);
+            var mission2 = new Mission
+            {
+                Id = 2,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 200m,
+                Address = "Str. Campului nr. 3",
+                ClientId = 102,
+                TruckId = 100401
+            };
+            var mission3 = new Mission
+            {
+                Id = 3,
+                Type = MissionType.Tractare,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 300m,
+                Address = "Str. Campului nr. 4",
+                ClientId = 101,
+                TruckId = 100400
+            };
+            var existingMissions = new List<Mission>();
+            existingMissions.AddRange(mission1, mission2, mission3);
+            _mockMissionsRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(existingMissions);
 
             // Act
             var stats = await _service.GetMissionStatistics();
@@ -455,7 +555,42 @@ namespace TdpTrans.Tests
             // Arrange
             int nonExistingId = 999;
             var request = new UpdateMissionRequest("Transport", null, null, null, null, null, null, null, null);
-            _mockRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(new List<Mission>());
+            var mission1 = new Mission
+            {
+                Id = 1,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 4, 1),
+                Cost = 100m,
+                Address = "Str. Campului nr. 2",
+                ClientId = 101,
+                TruckId = 100400
+            };
+            var mission2 = new Mission
+            {
+                Id = 2,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 200m,
+                Address = "Str. Campului nr. 3",
+                ClientId = 102,
+                TruckId = 100401
+            };
+            var mission3 = new Mission
+            {
+                Id = 3,
+                Type = MissionType.Tractare,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 300m,
+                Address = "Str. Campului nr. 4",
+                ClientId = 101,
+                TruckId = 100400
+            };
+            var existingMissions = new List<Mission>();
+            existingMissions.AddRange(mission1, mission2, mission3);
+            _mockMissionsRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(existingMissions);
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<ArgumentException>(() => _service.UpdateMissionById(nonExistingId, request));
@@ -468,27 +603,47 @@ namespace TdpTrans.Tests
             // Arrange
             int missionId = 1;
             var request = new UpdateMissionRequest("InvalidType", null, null, null, null, null, null, null, null);
-            var missions = new List<Mission>
+            var mission1 = new Mission
             {
-                new(
-                    missionId,
-                    MissionType.Transport,
-                    100400,
-                    new DateTime(2026, 5, 1),
-                    100m,
-                    "Client 1",
-                    "0705123456",
-                    "Str. Campului nr. 2",
-                    "client1@gmail.com",
-                    MissionStatus.Programata
-                )
+                Id = 1,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 4, 1),
+                Cost = 100m,
+                Address = "Str. Campului nr. 2",
+                ClientId = 101,
+                TruckId = 100400
             };
-            _mockRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(missions);
+            var mission2 = new Mission
+            {
+                Id = 2,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 200m,
+                Address = "Str. Campului nr. 3",
+                ClientId = 102,
+                TruckId = 100401
+            };
+            var mission3 = new Mission
+            {
+                Id = 3,
+                Type = MissionType.Tractare,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 300m,
+                Address = "Str. Campului nr. 4",
+                ClientId = 101,
+                TruckId = 100400
+            };
+            var existingMissions = new List<Mission>();
+            existingMissions.AddRange(mission1, mission2, mission3);
+            _mockMissionsRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(existingMissions);
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<ArgumentException>(() => _service.UpdateMissionById(missionId, request));
             Assert.Contains($"Invalid mission type: {request.MissionType}", exception.Message);
-            _mockRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
+            _mockMissionsRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
         }
 
         [Fact]
@@ -497,27 +652,47 @@ namespace TdpTrans.Tests
             // Arrange
             int missionId = 1;
             var request = new UpdateMissionRequest("Transport", null, null, null, null, null, null, null, "InvalidStatus");
-            var missions = new List<Mission>
+            var mission1 = new Mission
             {
-                new(
-                    missionId,
-                    MissionType.Transport,
-                    100400,
-                    new DateTime(2026, 5, 1),
-                    100m,
-                    "Client 1",
-                    "0705123456",
-                    "Str. Campului nr. 2",
-                    "client1@gmail.com",
-                    MissionStatus.Programata
-                )
+                Id = 1,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 4, 1),
+                Cost = 100m,
+                Address = "Str. Campului nr. 2",
+                ClientId = 101,
+                TruckId = 100400
             };
-            _mockRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(missions);
+            var mission2 = new Mission
+            {
+                Id = 2,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 200m,
+                Address = "Str. Campului nr. 3",
+                ClientId = 102,
+                TruckId = 100401
+            };
+            var mission3 = new Mission
+            {
+                Id = 3,
+                Type = MissionType.Tractare,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 300m,
+                Address = "Str. Campului nr. 4",
+                ClientId = 101,
+                TruckId = 100400
+            };
+            var existingMissions = new List<Mission>();
+            existingMissions.AddRange(mission1, mission2, mission3);
+            _mockMissionsRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(existingMissions);
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<ArgumentException>(() => _service.UpdateMissionById(missionId, request));
             Assert.Contains($"Invalid mission status: {request.MissionStatus}", exception.Message);
-            _mockRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
+            _mockMissionsRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
         }
 
         [Fact]
@@ -527,30 +702,50 @@ namespace TdpTrans.Tests
             int missionId = 1;
             int newTruckId = 100500;
             var request = new UpdateMissionRequest(null, newTruckId, null, null, null, null, null, null, "Programata");
-            var missions = new List<Mission>
+            var mission1 = new Mission
             {
-                new(
-                    missionId,
-                    MissionType.Transport,
-                    100400,
-                    new DateTime(2026, 5, 1),
-                    100m,
-                    "Client 1",
-                    "0705123456",
-                    "Str. Campului nr. 2",
-                    "client1@gmail.com",
-                    MissionStatus.Programata
-                )
+                Id = 1,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 4, 1),
+                Cost = 100m,
+                Address = "Str. Campului nr. 2",
+                ClientId = 101,
+                TruckId = 100400
             };
-            _mockRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(missions);
+            var mission2 = new Mission
+            {
+                Id = 2,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 200m,
+                Address = "Str. Campului nr. 3",
+                ClientId = 102,
+                TruckId = 100401
+            };
+            var mission3 = new Mission
+            {
+                Id = 3,
+                Type = MissionType.Tractare,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 300m,
+                Address = "Str. Campului nr. 4",
+                ClientId = 101,
+                TruckId = 100400
+            };
+            var existingMissions = new List<Mission>();
+            existingMissions.AddRange(mission1, mission2, mission3);
+            _mockMissionsRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(existingMissions);
 
             // Act
             var updatedMissionId = await _service.UpdateMissionById(missionId, request);
 
             // Assert
             Assert.Equal(missionId, updatedMissionId);
-            _mockRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
-            Assert.Equal(newTruckId, missions.First().TruckId);
+            _mockMissionsRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
+            Assert.Equal(newTruckId, existingMissions.First().TruckId);
         }
 
         [Fact]
@@ -560,30 +755,50 @@ namespace TdpTrans.Tests
             int missionId = 1;
             DateTime newDate = new DateTime(2026, 6, 1);
             var request = new UpdateMissionRequest(null, null, newDate, null, null, null, null, null, null);
-            var missions = new List<Mission>
+            var mission1 = new Mission
             {
-                new(
-                    missionId,
-                    MissionType.Transport,
-                    100400,
-                    new DateTime(2026, 5, 1),
-                    100m,
-                    "Client 1",
-                    "0705123456",
-                    "Str. Campului nr. 2",
-                    "client1@gmail.com",
-                    MissionStatus.Programata
-                )
+                Id = 1,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 4, 1),
+                Cost = 100m,
+                Address = "Str. Campului nr. 2",
+                ClientId = 101,
+                TruckId = 100400
             };
-            _mockRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(missions);
+            var mission2 = new Mission
+            {
+                Id = 2,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 200m,
+                Address = "Str. Campului nr. 3",
+                ClientId = 102,
+                TruckId = 100401
+            };
+            var mission3 = new Mission
+            {
+                Id = 3,
+                Type = MissionType.Tractare,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 300m,
+                Address = "Str. Campului nr. 4",
+                ClientId = 101,
+                TruckId = 100400
+            };
+            var existingMissions = new List<Mission>();
+            existingMissions.AddRange(mission1, mission2, mission3);
+            _mockMissionsRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(existingMissions);
 
             // Act
             var updatedMissionId = await _service.UpdateMissionById(missionId, request);
 
             // Assert
             Assert.Equal(missionId, updatedMissionId);
-            _mockRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
-            Assert.Equal(newDate, missions.First().Date);
+            _mockMissionsRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
+            Assert.Equal(newDate, existingMissions.First().Date);
         }
 
         [Fact]
@@ -593,30 +808,50 @@ namespace TdpTrans.Tests
             int missionId = 1;
             decimal newCost = 200m;
             var request = new UpdateMissionRequest(null, null, null, newCost, null, null, null, null, null);
-            var missions = new List<Mission>
+            var mission1 = new Mission
             {
-                new(
-                    missionId,
-                    MissionType.Transport,
-                    100400,
-                    new DateTime(2026, 5, 1),
-                    100m,
-                    "Client 1",
-                    "0705123456",
-                    "Str. Campului nr. 2",
-                    "client1@gmail.com",
-                    MissionStatus.Programata
-                )
+                Id = 1,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 4, 1),
+                Cost = 100m,
+                Address = "Str. Campului nr. 2",
+                ClientId = 101,
+                TruckId = 100400
             };
-            _mockRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(missions);
+            var mission2 = new Mission
+            {
+                Id = 2,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 200m,
+                Address = "Str. Campului nr. 3",
+                ClientId = 102,
+                TruckId = 100401
+            };
+            var mission3 = new Mission
+            {
+                Id = 3,
+                Type = MissionType.Tractare,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 300m,
+                Address = "Str. Campului nr. 4",
+                ClientId = 101,
+                TruckId = 100400
+            };
+            var existingMissions = new List<Mission>();
+            existingMissions.AddRange(mission1, mission2, mission3);
+            _mockMissionsRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(existingMissions);
 
             // Act
             var updatedMissionId = await _service.UpdateMissionById(missionId, request);
 
             // Assert
             Assert.Equal(missionId, updatedMissionId);
-            _mockRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
-            Assert.Equal(newCost, missions.First().Cost);
+            _mockMissionsRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
+            Assert.Equal(newCost, existingMissions.First().Cost);
         }
 
         [Fact]
@@ -626,30 +861,56 @@ namespace TdpTrans.Tests
             int missionId = 1;
             string newClient = "Client 2";
             var request = new UpdateMissionRequest(null, null, null, null, newClient, null, null, null, null);
-            var missions = new List<Mission>
+            var client1 = new Client
             {
-                new(
-                    missionId,
-                    MissionType.Transport,
-                    100400,
-                    new DateTime(2026, 5, 1),
-                    100m,
-                    "Client 1",
-                    "0705123456",
-                    "Str. Campului nr. 2",
-                    "client1@gmail.com",
-                    MissionStatus.Programata
-                )
+                Id = 100,
+                Name = "Client 1"
             };
-            _mockRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(missions);
+            var mission1 = new Mission
+            {
+                Id = 1,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 4, 1),
+                Cost = 100m,
+                Address = "Str. Campului nr. 2",
+                ClientId = 101,
+                TruckId = 100400,
+                Client = client1
+            };
+            var mission2 = new Mission
+            {
+                Id = 2,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 200m,
+                Address = "Str. Campului nr. 3",
+                ClientId = 102,
+                TruckId = 100401
+            };
+            var mission3 = new Mission
+            {
+                Id = 3,
+                Type = MissionType.Tractare,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 300m,
+                Address = "Str. Campului nr. 4",
+                ClientId = 101,
+                TruckId = 100400
+            };
+            var existingMissions = new List<Mission>();
+            existingMissions.AddRange(mission1, mission2, mission3);
+            _mockMissionsRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(existingMissions);
 
             // Act
             var updatedMissionId = await _service.UpdateMissionById(missionId, request);
 
             // Assert
             Assert.Equal(missionId, updatedMissionId);
-            _mockRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
-            Assert.Equal(newClient, missions.First().Client);
+            _mockMissionsRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
+            Assert.Equal(newClient, existingMissions.First().Client.Name);
         }
 
         [Fact]
@@ -659,30 +920,56 @@ namespace TdpTrans.Tests
             int missionId = 1;
             string newPhone = "0712345678";
             var request = new UpdateMissionRequest(null, null, null, null, null, newPhone, null, null, null);
-            var missions = new List<Mission>
+            var client1 = new Client
             {
-                new(
-                    missionId,
-                    MissionType.Transport,
-                    100400,
-                    new DateTime(2026, 5, 1),
-                    100m,
-                    "Client 1",
-                    "0705123456",
-                    "Str. Campului nr. 2",
-                    "client1@gmail.com",
-                    MissionStatus.Programata
-                )
+                Id = 100,
+                Phone = "0712123123"
             };
-            _mockRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(missions);
+            var mission1 = new Mission
+            {
+                Id = 1,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 4, 1),
+                Cost = 100m,
+                Address = "Str. Campului nr. 2",
+                ClientId = 101,
+                TruckId = 100400,
+                Client = client1
+            };
+            var mission2 = new Mission
+            {
+                Id = 2,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 200m,
+                Address = "Str. Campului nr. 3",
+                ClientId = 102,
+                TruckId = 100401
+            };
+            var mission3 = new Mission
+            {
+                Id = 3,
+                Type = MissionType.Tractare,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 300m,
+                Address = "Str. Campului nr. 4",
+                ClientId = 101,
+                TruckId = 100400
+            };
+            var existingMissions = new List<Mission>();
+            existingMissions.AddRange(mission1, mission2, mission3);
+            _mockMissionsRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(existingMissions);
 
             // Act
             var updatedMissionId = await _service.UpdateMissionById(missionId, request);
 
             // Assert
             Assert.Equal(missionId, updatedMissionId);
-            _mockRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
-            Assert.Equal(newPhone, missions.First().Phone);
+            _mockMissionsRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
+            Assert.Equal(newPhone, existingMissions.First().Client.Phone);
         }
 
         [Fact]
@@ -693,30 +980,50 @@ namespace TdpTrans.Tests
             DateTime newDate = new DateTime(2026, 6, 1);
             var newAddress = "Str. Noua nr. 5";
             var request = new UpdateMissionRequest(null, null, null, null, null, null, newAddress, null, null);
-            var missions = new List<Mission>
+            var mission1 = new Mission
             {
-                new(
-                    missionId,
-                    MissionType.Transport,
-                    100400,
-                    new DateTime(2026, 5, 1),
-                    100m,
-                    "Client 1",
-                    "0705123456",
-                    "Str. Campului nr. 2",
-                    "client1@gmail.com",
-                    MissionStatus.Programata
-                )
+                Id = 1,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 4, 1),
+                Cost = 100m,
+                Address = "Str. Campului nr. 2",
+                ClientId = 101,
+                TruckId = 100400
             };
-            _mockRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(missions);
+            var mission2 = new Mission
+            {
+                Id = 2,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 200m,
+                Address = "Str. Campului nr. 3",
+                ClientId = 102,
+                TruckId = 100401
+            };
+            var mission3 = new Mission
+            {
+                Id = 3,
+                Type = MissionType.Tractare,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 300m,
+                Address = "Str. Campului nr. 4",
+                ClientId = 101,
+                TruckId = 100400
+            };
+            var existingMissions = new List<Mission>();
+            existingMissions.AddRange(mission1, mission2, mission3);
+            _mockMissionsRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(existingMissions);
 
             // Act
             var updatedMissionId = await _service.UpdateMissionById(missionId, request);
 
             // Assert
             Assert.Equal(missionId, updatedMissionId);
-            _mockRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
-            Assert.Equal(newAddress, missions.First().Address);
+            _mockMissionsRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
+            Assert.Equal(newAddress, existingMissions.First().Address);
         }
 
         [Fact]
@@ -726,30 +1033,61 @@ namespace TdpTrans.Tests
             int missionId = 1;
             var newEmail = "newemail@gmail.com";
             var request = new UpdateMissionRequest(null, null, null, null, null, null, null, newEmail, null);
-            var missions = new List<Mission>
+            var client1 = new Client
             {
-                new(
-                    missionId,
-                    MissionType.Transport,
-                    100400,
-                    new DateTime(2026, 5, 1),
-                    100m,
-                    "Client 1",
-                    "0705123456",
-                    "Str. Campului nr. 2",
-                    "client1@gmail.com",
-                    MissionStatus.Programata
-                )
+                Id = 100,
+                Email = "oldemail@gmail.com"
             };
-            _mockRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(missions);
+            var mission1 = new Mission
+            {
+                Id = 1,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 4, 1),
+                Cost = 100m,
+                Address = "Str. Campului nr. 2",
+                ClientId = 101,
+                Client = new Client { Name = "Test Client1", Email = "test1@test.com" },
+                TruckId = 100400,
+                Truck = new Truck { LicensePlate = "CJ 99 TST" }
+            };
+            var mission2 = new Mission
+            {
+                Id = 2,
+                Type = MissionType.Transport,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 200m,
+                Address = "Str. Campului nr. 3",
+                ClientId = 102,
+                Client = new Client { Name = "Test Client2", Email = "test2@test.com" },
+                TruckId = 100401,
+                Truck = new Truck { LicensePlate = "CJ 98 TST" }
+            };
+            var mission3 = new Mission
+            {
+                Id = 3,
+                Type = MissionType.Tractare,
+                Status = MissionStatus.Programata,
+                Date = new DateTime(2026, 5, 2),
+                Cost = 300m,
+                Address = "Str. Campului nr. 4",
+                ClientId = 101,
+                Client = new Client { Name = "Test Client1", Email = "test1@test.com" },
+                TruckId = 100400,
+                Truck = new Truck { LicensePlate = "CJ 99 TST" }
+            };
+            var existingMissions = new List<Mission>();
+            existingMissions.AddRange(mission1, mission2, mission3);
+            _mockMissionsRepo.Setup(repo => repo.GetAllMissions(null)).ReturnsAsync(existingMissions);
 
             // Act
             var updatedMissionId = await _service.UpdateMissionById(missionId, request);
 
             // Assert
             Assert.Equal(missionId, updatedMissionId);
-            _mockRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
-            Assert.Equal(newEmail, missions.First().Email);
+            _mockMissionsRepo.Verify(repo => repo.GetAllMissions(null), Times.Once);
+            Assert.Equal(newEmail, existingMissions.First().Client.Email);
         }
     }
 }

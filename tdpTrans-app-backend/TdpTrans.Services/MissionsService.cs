@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using TdpTrans.DTOs;
@@ -65,8 +66,6 @@ namespace TdpTrans.Services
             };
 
             var createdMission = await _missionsRepository.AddMission(mission);
-
-            // EF Core populează automat 'Id' după salvare
             return createdMission.Id;
         }
 
@@ -93,11 +92,10 @@ namespace TdpTrans.Services
 
         public async Task<MissionResponse?> GetMissionById(int id)
         {
-            var missions = await _missionsRepository.GetAllMissions();
-            return missions
-                .Where(mission => mission.Id == id)
-                .Select(mission => Mapper.FromMissionToDTO(mission))
-                .FirstOrDefault();
+            var mission = await _missionsRepository.GetMissionById(id);
+            if (mission == null)
+                return null;
+            return Mapper.FromMissionToDTO(mission);
         }
 
         public async Task<PaginatedResult> GetMissionsPaginated(int page, int pageSize, string? searchTerm = null)

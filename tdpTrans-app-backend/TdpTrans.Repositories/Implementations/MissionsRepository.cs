@@ -33,7 +33,11 @@ namespace TdpTrans.Repositories.Implementations
 
         public async Task<IEnumerable<Mission>> GetAllMissions(string? searchTerm = null)
         {
-            return await _context.Missions.ToListAsync();
+            return searchTerm == null ? 
+                await _context.Missions.ToListAsync() : 
+                await _context.Missions.Where(m => (m.Client.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                                        m.Client.Phone.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                                        m.Id.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase))).ToListAsync();
         }
 
         public async Task<Mission?> GetMissionById(int missionId)

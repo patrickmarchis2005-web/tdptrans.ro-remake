@@ -87,7 +87,7 @@ namespace TdpTrans.Services
         public async Task<IEnumerable<MissionResponse>> GetAllMissions()
         {
             var missions = await _missionsRepository.GetAllMissions();
-            return missions.Select(mission => Mapper.FromMissionToDTO(mission));
+            return missions.Select(mission => Mapper.FromMissionToDTO(mission)).ToList();
         }
 
         public async Task<MissionResponse?> GetMissionById(int id)

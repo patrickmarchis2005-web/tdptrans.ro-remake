@@ -19,6 +19,8 @@ namespace TdpTrans.Tests
         private readonly Mock<IMissionsRepository> _mockMissionsRepo;
         private readonly Mock<ITrucksRepository> _mockTrucksRepo;
         private readonly Mock<IClientsRepository> _mockClientsRepo;
+        private readonly Mock<IUserAccessService> _mockUserAccessService;
+        private readonly Mock<IActivityLogService> _mockActivityLogService;
         private readonly MissionsService _service;
 
         public MissionsServiceTests()
@@ -26,7 +28,14 @@ namespace TdpTrans.Tests
             _mockMissionsRepo = new Mock<IMissionsRepository>();
             _mockClientsRepo = new Mock<IClientsRepository>();
             _mockTrucksRepo = new Mock<ITrucksRepository>();
-            _service = new MissionsService(_mockMissionsRepo.Object, _mockClientsRepo.Object, _mockTrucksRepo.Object);
+            _mockUserAccessService = new Mock<IUserAccessService>();
+            _mockActivityLogService = new Mock<IActivityLogService>();
+            _service = new MissionsService(
+                _mockMissionsRepo.Object,
+                _mockClientsRepo.Object,
+                _mockTrucksRepo.Object,
+                _mockUserAccessService.Object,
+                _mockActivityLogService.Object);
         }
 
         [Fact]

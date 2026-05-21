@@ -1,10 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using TdpTrans.Models;
 using TdpTrans.Repositories.Interfaces;
 
@@ -34,24 +28,35 @@ namespace TdpTrans.Repositories.Implementations
 
         public async Task<IEnumerable<Mission>> GetAllMissions(string? searchTerm = null)
         {
-            return searchTerm.IsNullOrEmpty() ? 
-                await _context.Missions
-                    .Include(m => m.Client)
-                    .Include(m => m.Truck)
-                    .AsQueryable().ToListAsync() : 
-                await _context.Missions
-                    .Include(m => m.Client)
-                    .Include(m => m.Truck)
-                    .Where(m => (m.Client.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                                m.Client.Phone.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                                m.Id.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                    .AsQueryable()
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                return await _context.Missions
+                    .Include(mission => mission.Client)
+                    .Include(mission => mission.Truck)
                     .ToListAsync();
+            }
+
+            return await _context.Missions
+                .Include(mission => mission.Client)
+                .Include(mission => mission.Truck)
+                .Where(mission =>
+                    mission.Client.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    mission.Client.Phone.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    mission.Id.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                .ToListAsync();
         }
 
         public async Task<Mission?> GetMissionById(int missionId)
         {
-            return await _context.Missions.FirstOrDefaultAsync(m => m.Id == missionId);
+            return await _context.Missions
+                .Include(mission => mission.Client)
+                .Include(mission => mission.Truck)
+                .FirstOrDefaultAsync(mission => mission.Id == missionId);
+        }
+
+        public async Task SaveChanges()
+        {
+            await _context.SaveChangesAsync();
         }
     }
 }

@@ -1,33 +1,36 @@
 .authContainer {
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background-color: #43526B;
-  font-family: sans-serif;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 140, 0, 0.22), transparent 28%),
+    linear-gradient(160deg, #223041 0%, #43526b 55%, #2d3748 100%);
+  font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
 }
 
 .authContainer h1 {
-  color: white;
-  margin-bottom: 20px;
-  font-size: 2rem;
+  color: #ffffff;
+  margin-bottom: 22px;
+  font-size: clamp(2rem, 7vw, 3.2rem);
+  letter-spacing: 0.04em;
 }
 
 .card {
-  background: #F7FAFC;
-  padding: 40px;
-  border-radius: 20px;
-  width: 100%;
-  max-width: 400px;
+  width: min(100%, 420px);
+  background: rgba(247, 250, 252, 0.96);
+  padding: 32px;
+  border-radius: 24px;
   text-align: center;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  box-shadow: 0 22px 45px rgba(0, 0, 0, 0.18);
 }
 
 .card h2 {
   margin-bottom: 25px;
-  color: #333;
-  font-weight: bold;
+  color: #1b2735;
+  font-weight: 700;
 }
 
 .card form {
@@ -37,37 +40,55 @@
 }
 
 .card input {
+  width: 100%;
   padding: 15px;
-  border: 2px solid lightgrey;
-  background-color: #ddd;
-  border-radius: 8px;
+  border: 1px solid rgba(27, 39, 53, 0.16);
+  background-color: #ffffff;
+  border-radius: 14px;
   font-size: 1rem;
-  color: #333;
+  color: #1b2735;
+}
+
+.card input:focus {
+  outline: none;
+  border-color: #ff8c00;
+  box-shadow: 0 0 0 4px rgba(255, 140, 0, 0.14);
 }
 
 .card button {
-  background-color: #2D3748;
-  color: white;
+  background-color: #223041;
+  color: #ffffff;
   padding: 15px;
   border: none;
-  border-radius: 8px;
+  border-radius: 14px;
   font-size: 1rem;
-  font-weight: bold;
+  font-weight: 700;
   cursor: pointer;
   margin-top: 10px;
 }
 
 .card button:hover {
-  background-color: #1a252f;
+  background-color: #182433;
 }
 
-.card p {
+.switchLink {
   margin-top: 20px;
-  font-size: 0.9rem;
-  color: #666;
+  font-size: 0.95rem;
+  color: #4f5d6e;
   cursor: pointer;
 }
 
-.card p:hover {
+.switchLink:hover {
   text-decoration: underline;
+}
+
+@media (max-width: 520px) {
+  .authContainer {
+    padding: 18px;
+  }
+
+  .card {
+    padding: 24px 20px;
+    border-radius: 20px;
+  }
 }

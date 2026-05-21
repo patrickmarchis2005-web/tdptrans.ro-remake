@@ -14,5 +14,6 @@ namespace TdpTrans.Repositories.Interfaces
         Task<IEnumerable<Mission>> GetAllMissions(string? searchTerm = null);
         Task<Mission?> GetMissionById(int missionId);
         Task DeleteMission(Mission mission);
+        Task SaveChanges();
     }
 }

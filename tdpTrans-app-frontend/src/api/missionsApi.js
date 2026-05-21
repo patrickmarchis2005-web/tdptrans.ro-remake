@@ -1,77 +1,95 @@
-const BASE_URL = 'http://localhost:5152/api/missions';
+import { API_BASE } from './config';
+import { buildAuthHeaders } from '../utils/session';
 
-// 1. GET: aduc comenzile (cu paginare)
-export const fetchMissions = async (page = 1, limit = 5, searchTerm = '') => {
-    try {
-        let url = `${BASE_URL}?page=${page}&limit=${limit}`;
-        
-        if (searchTerm) {
-            url += `&search=${encodeURIComponent(searchTerm)}`;
-        }
+const BASE_URL = `${API_BASE}/missions`;
 
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Eroare la aducerea comenzilor');
-        return await response.json(); 
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
+const parseError = async (response, fallbackMessage) => {
+  const text = await response.text();
+  return text || fallbackMessage;
 };
 
-// 2. GET: aduc statisticile pentru grafice
+export const fetchMissions = async (page = 1, pageSize = 5, searchTerm = '') => {
+  try {
+    let url = `${BASE_URL}?page=${page}&pageSize=${pageSize}`;
+
+    if (searchTerm) {
+      url += `&search=${encodeURIComponent(searchTerm)}`;
+    }
+
+    const response = await fetch(url, {
+      headers: buildAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error(await parseError(response, 'Eroare la aducerea comenzilor.'));
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
 export const fetchStatistics = async () => {
-    try {
-        const response = await fetch(`${BASE_URL}/statistics`);
-        if (!response.ok) throw new Error('Eroare la aducerea statisticilor');
-        return await response.json();
-    } catch (error) {
-        console.error(error);
-        return null;
+  try {
+    const response = await fetch(`${BASE_URL}/statistics`, {
+      headers: buildAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error(await parseError(response, 'Eroare la aducerea statisticilor.'));
     }
+
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 };
 
-// 3. POST: adaug o comanda noua
 export const createMission = async (missionData) => {
-    try {
-        const response = await fetch(BASE_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(missionData)
-        });
-        if (!response.ok) throw new Error('Eroare la crearea comenzii');
-        return await response.json();
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
+  const response = await fetch(BASE_URL, {
+    method: 'POST',
+    headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(missionData),
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseError(response, `Eroare la crearea comenzii: ${response.status}`));
+  }
+
+  return response.json();
 };
 
-// 4. PUT: modific o comanda existenta
 export const updateMission = async (id, missionData) => {
-    try {
-        const response = await fetch(`${BASE_URL}/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(missionData)
-        });
-        if (!response.ok) throw new Error('Eroare la actualizarea comenzii');
-        return await response.json();
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
+  const response = await fetch(`${BASE_URL}/${id}`, {
+    method: 'PUT',
+    headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(missionData),
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseError(response, 'Eroare la actualizarea comenzii.'));
+  }
+
+  return response.json();
 };
 
-// 5. DELETE: sterg o comanda
 export const deleteMission = async (id) => {
-    try {
-        const response = await fetch(`${BASE_URL}/${id}`, {
-            method: 'DELETE'
-        });
-        if (!response.ok) throw new Error('Eroare la ștergerea comenzii');
-        return true;
-    } catch (error) {
-        console.error(error);
-        return false;
+  try {
+    const response = await fetch(`${BASE_URL}/${id}`, {
+      method: 'DELETE',
+      headers: buildAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error(await parseError(response, 'Eroare la stergerea comenzii.'));
     }
+
+    return true;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
 };

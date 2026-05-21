@@ -1,8 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using TdpTrans.Models;
 
@@ -17,10 +12,51 @@ namespace TdpTrans.Repositories
         public DbSet<Client> Clients { get; set; }
         public DbSet<Truck> Trucks { get; set; }
         public DbSet<Mission> Missions { get; set; }
+        public DbSet<AppUser> Users { get; set; }
+        public DbSet<AppRole> Roles { get; set; }
+        public DbSet<AppPermission> Permissions { get; set; }
+        public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<ActivityLog> ActivityLogs { get; set; }
+        public DbSet<UserObservation> UserObservations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<AppUser>()
+                .HasIndex(user => user.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<AppRole>()
+                .HasIndex(role => role.Name)
+                .IsUnique();
+
+            modelBuilder.Entity<AppPermission>()
+                .HasIndex(permission => permission.Name)
+                .IsUnique();
+
+            modelBuilder.Entity<Mission>()
+                .Property(mission => mission.Cost)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<UserRole>()
+                .HasKey(userRole => new { userRole.UserId, userRole.RoleId });
+
+            modelBuilder.Entity<RolePermission>()
+                .HasKey(rolePermission => new { rolePermission.RoleId, rolePermission.PermissionId });
+
+            modelBuilder.Entity<ActivityLog>()
+                .HasOne(activityLog => activityLog.User)
+                .WithMany(user => user.ActivityLogs)
+                .HasForeignKey(activityLog => activityLog.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<UserObservation>()
+                .HasOne(observation => observation.User)
+                .WithMany(user => user.Observations)
+                .HasForeignKey(observation => observation.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             var client1 = new Client { Id = 1, Name = "Tech Logistics SRL", Phone = "0722111222", Email = "contact@techlog.ro" };
             var client2 = new Client { Id = 2, Name = "Auto Depanare SA", Phone = "0733444555", Email = "office@autodepanare.ro" };
@@ -77,6 +113,52 @@ namespace TdpTrans.Repositories
                     Address = "Soseaua Vestului, Ploiesti",
                     Date = new DateTime(2026, 5, 15)
                 }
+            );
+
+            modelBuilder.Entity<AppRole>().HasData(
+                new AppRole { Id = 1, Name = RoleNames.Admin, Description = "Administrator with full permissions." },
+                new AppRole { Id = 2, Name = RoleNames.User, Description = "Standard user with limited permissions." }
+            );
+
+            modelBuilder.Entity<AppPermission>().HasData(
+                new AppPermission { Id = 1, Name = PermissionNames.MissionsManage, Description = "Manage orders and operational data." },
+                new AppPermission { Id = 2, Name = PermissionNames.ChatUse, Description = "Use the real-time chat." },
+                new AppPermission { Id = 3, Name = PermissionNames.ObservationsView, Description = "View suspicious users." },
+                new AppPermission { Id = 4, Name = PermissionNames.LogsView, Description = "View recent activity logs." }
+            );
+
+            modelBuilder.Entity<AppUser>().HasData(
+                new AppUser
+                {
+                    Id = 1,
+                    FullName = "Administrator TDP",
+                    Email = "admin@tdptrans.ro",
+                    PasswordHash = CredentialHasher.HashPassword("12345678"),
+                    IsActive = true,
+                    CreatedAtUtc = new DateTime(2026, 5, 1, 8, 0, 0, DateTimeKind.Utc)
+                },
+                new AppUser
+                {
+                    Id = 2,
+                    FullName = "Sofer TDP",
+                    Email = "sofer@tdptrans.ro",
+                    PasswordHash = CredentialHasher.HashPassword("12345678"),
+                    IsActive = true,
+                    CreatedAtUtc = new DateTime(2026, 5, 1, 8, 5, 0, DateTimeKind.Utc)
+                }
+            );
+
+            modelBuilder.Entity<UserRole>().HasData(
+                new UserRole { UserId = 1, RoleId = 1 },
+                new UserRole { UserId = 2, RoleId = 2 }
+            );
+
+            modelBuilder.Entity<RolePermission>().HasData(
+                new RolePermission { RoleId = 1, PermissionId = 1 },
+                new RolePermission { RoleId = 1, PermissionId = 2 },
+                new RolePermission { RoleId = 1, PermissionId = 3 },
+                new RolePermission { RoleId = 1, PermissionId = 4 },
+                new RolePermission { RoleId = 2, PermissionId = 2 }
             );
         }
     }

@@ -1,16 +1,13 @@
-/* ==========================================================================
-   1. LAYOUT PRINCIPAL (Dashboard & Sidebar)
-   ========================================================================== */
 .dashboard {
   display: flex;
-  height: 100vh;
+  min-height: 100svh;
   background-color: #f5f7f9;
 }
 
-/* SIDEBAR STIL VAADIN (MASTER VIEW) */
 .sidebar {
   width: 320px;
-  background: #2D3748;
+  min-width: 320px;
+  background: #2d3748;
   border-right: 1px solid #e1e5ea;
   display: flex;
   flex-direction: column;
@@ -31,12 +28,13 @@
   margin: 0;
 }
 
-.homeBtn {
+.homeBtn,
+.addBtn {
   background: #ff8c00;
   color: white;
   border: none;
   margin: 10px;
-  padding: 8px 6px;
+  padding: 10px 8px;
   border-radius: 6px;
   font-size: 0.9rem;
   font-weight: bold;
@@ -45,24 +43,16 @@
   text-align: center;
 }
 
-.homeBtn:hover, .addBtn:hover {
+.addBtn {
+  margin-bottom: 20px;
+}
+
+.homeBtn:hover,
+.addBtn:hover {
   background-color: #e67e00;
 }
 
-.addBtn {
-  background: #ff8c00;
-  color: white;
-  border: none;
-  margin: 10px;
-  margin-bottom: 20px;
-  padding: 8px 6px;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.searchBar { 
+.searchBar {
   padding: 0 10px 15px 10px;
 }
 
@@ -71,14 +61,14 @@
   padding: 10px;
   border: 1px solid #e1e5ea;
   background-color: white;
-  color: #2D3748;
+  color: #2d3748;
   border-radius: 6px;
   box-sizing: border-box;
 }
 
-.masterList { 
-  overflow-y: auto; 
-  flex: 1; 
+.masterList {
+  overflow-y: auto;
+  flex: 1;
 }
 
 .masterItem {
@@ -88,24 +78,24 @@
   transition: background 0.2s;
 }
 
-.masterItem:hover { 
-  background: #44536d; 
+.masterItem:hover,
+.masterItem.active {
+  background: #44536d;
 }
 
-.masterItem.active { 
-  background: #44536d; 
-  border-left: 4px solid #ff8c00; 
+.masterItem.active {
+  border-left: 4px solid #ff8c00;
 }
 
-.itemName { 
-  display: block; 
-  font-weight: 600; 
-  color: white; 
+.itemName {
+  display: block;
+  font-weight: 600;
+  color: white;
 }
 
-.itemSub { 
-  font-size: 0.85rem; 
-  color: lightgrey; 
+.itemSub {
+  font-size: 0.85rem;
+  color: lightgrey;
   margin-top: 5px;
   display: block;
 }
@@ -124,7 +114,7 @@
   gap: 15px;
   padding: 15px;
   border-top: 1px solid #1a202c;
-  background: #2D3748;
+  background: #2d3748;
   color: white;
 }
 
@@ -148,29 +138,162 @@
   font-weight: bold;
 }
 
-
-/* ==========================================================================
-   2. MAIN CONTENT (Zona din dreapta unde stau Graficele)
-   ========================================================================== */
-.mainContent { 
-  flex: 1; 
-  padding: 30px; 
-  overflow-y: auto; 
+.mainContent {
+  flex: 1;
+  min-width: 0;
+  padding: 30px;
+  overflow-y: auto;
   background-color: #f4f7f6;
   display: flex;
-  justify-content: center; /* Centrează graficele dacă ecranul e foarte lat */
+  justify-content: center;
 }
 
+.mainStack {
+  width: 100%;
+  max-width: 1080px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
 
-/* ==========================================================================
-   3. MODALUL (Fereastra de Editare/Adăugare - Detail View)
-   ========================================================================== */
+.insightGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.insightCard {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e6ebf0;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.insightHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.insightHeader h3 {
+  margin: 0;
+  color: #223041;
+}
+
+.insightHeader p {
+  margin: 6px 0 0;
+  color: #667588;
+  line-height: 1.5;
+}
+
+.countBadge {
+  min-width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: rgba(255, 140, 0, 0.12);
+  color: #a85300;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.insightList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.insightItem {
+  padding: 14px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e6ebf0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.insightItem p,
+.insightItem small {
+  margin: 0;
+  color: #4f5d6e;
+}
+
+.insightMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rolePill,
+.riskBadge,
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.rolePill {
+  background: rgba(34, 48, 65, 0.08);
+  color: #223041;
+}
+
+.riskBadge {
+  color: white;
+}
+
+.riskHigh {
+  background: #e53e3e;
+}
+
+.riskMedium {
+  background: #dd6b20;
+}
+
+.riskLow {
+  background: #2b6cb0;
+}
+
+.statusBadge {
+  color: white;
+}
+
+.logSuccess {
+  background: #08a400;
+}
+
+.logFailed {
+  background: #c53030;
+}
+
+.emptyState {
+  color: #718096;
+  line-height: 1.6;
+}
+
+.panelError {
+  background: rgba(229, 62, 62, 0.08);
+  color: #9b2c2c;
+  border: 1px solid rgba(229, 62, 62, 0.18);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
 .modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
@@ -186,8 +309,9 @@
   overflow-y: auto;
   background: white;
   padding: 35px;
+  margin: 20px;
   border-radius: 12px;
-  box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
   position: relative;
 }
 
@@ -207,28 +331,28 @@
   color: #e53e3e;
 }
 
-.detailHeader { 
-  display: flex; 
-  align-items: center; 
-  gap: 20px; 
-  margin-bottom: 30px; 
+.detailHeader {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
 }
 
 .avatar {
-  width: 64px; 
-  height: 64px; 
-  background: #e1e5ea; 
-  color: #2D3748;
-  border-radius: 50%; 
-  display: flex; 
+  width: 64px;
+  height: 64px;
+  background: #e1e5ea;
+  color: #2d3748;
+  border-radius: 50%;
+  display: flex;
   align-items: center;
-  justify-content: center; 
-  font-size: 1.5rem; 
+  justify-content: center;
+  font-size: 1.5rem;
   font-weight: bold;
 }
 
 .detailHeader h1 {
-  color: #2D3748;
+  color: #2d3748;
   margin: 0 0 5px 0;
   font-size: 1.6rem;
 }
@@ -239,111 +363,105 @@
   font-size: 0.9rem;
 }
 
-.infoSection h3 { 
-  font-size: 1.1rem; 
-  color: #1a1c1e; 
-  margin-bottom: 15px; 
+.infoSection h3 {
+  font-size: 1.1rem;
+  color: #1a1c1e;
+  margin-bottom: 15px;
   padding-top: 10px;
   border-bottom: 1px solid #edf2f7;
   padding-bottom: 8px;
 }
 
-.grid { 
-  display: grid; 
-  grid-template-columns: 1fr 1fr; 
-  gap: 20px; 
-  margin-bottom: 30px; 
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 30px;
 }
 
-.fullWidth { 
-  grid-column: span 2; 
+.fullWidth {
+  grid-column: span 2;
 }
 
-.grid label { 
-  display: block; 
-  font-size: 0.85rem; 
-  color: #4a5568; 
-  margin-bottom: 6px; 
+.grid label {
+  display: block;
+  font-size: 0.85rem;
+  color: #4a5568;
+  margin-bottom: 6px;
   font-weight: 500;
 }
 
-.grid input, .grid select { 
-  width: 100%; 
-  padding: 10px 12px; 
-  border: 1px solid #cbd5e0; 
-  border-radius: 6px; 
-  font-size: 0.95rem; 
+.grid input,
+.grid select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-size: 0.95rem;
   box-sizing: border-box;
   transition: border-color 0.2s;
 }
 
-.grid input:focus {
+.grid input:focus,
+.grid select:focus {
   outline: none;
   border-color: #ff8c00;
 }
 
-.detailFooter { 
-  display: flex; 
-  gap: 15px; 
-  border-top: 1px solid #e1e5ea; 
-  padding-top: 25px; 
-  justify-content: flex-end; /* Aliniem butoanele la dreapta */
+.detailFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  border-top: 1px solid #e1e5ea;
+  padding-top: 25px;
+  justify-content: flex-end;
 }
 
-.editBtn { 
-  background: #08a400; 
-  color: white; 
-  border: none; 
-  padding: 10px 24px; 
-  border-radius: 6px; 
-  cursor: pointer; 
+.editBtn,
+.deleteBtn,
+.cancelBtn {
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
   font-weight: bold;
+  padding: 10px 20px;
 }
 
-.deleteBtn { 
-  background: #e53e3e; 
-  color: white; 
-  border: none; 
-  padding: 10px 20px; 
-  border-radius: 6px; 
-  cursor: pointer; 
-  font-weight: bold;
+.editBtn {
+  background: #08a400;
+  color: white;
+  padding-inline: 24px;
+}
+
+.deleteBtn {
+  background: #e53e3e;
+  color: white;
 }
 
 .cancelBtn {
   background: #edf2f7;
   color: #4a5568;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
 }
 
 .cancelBtn:hover {
   background: #e2e8f0;
 }
 
-
-/* ==========================================================================
-   4. STILURI PENTRU GRAFICE (Charts Area)
-   ========================================================================== */
 :root {
-  --figma-blue-dark: #354151; 
-  --figma-teal-light: #49dbdb; 
-  --figma-teal-dark: #2a7e7e; 
-  --figma-map-bg: #1c252e; 
+  --figma-blue-dark: #354151;
+  --figma-teal-light: #49dbdb;
+  --figma-teal-dark: #2a7e7e;
 }
 
 .chartsArea {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   width: 100%;
-  max-width: 900px; /* Lățime maximă ca să arate bine pe monitoare mari */
+  max-width: 1080px;
 }
 
 .chartsHeader {
@@ -358,36 +476,6 @@
   font-size: 1.6rem;
 }
 
-.mapSection {
-  background-color: var(--figma-map-bg);
-  padding: 30px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.legendGradient {
-  margin-top: 20px;
-  width: 80%;
-  max-width: 400px;
-}
-
-.gradientBar {
-  display: block;
-  height: 12px;
-  width: 100%;
-  background: linear-gradient(to right, #49dbdb, #2a7e7e);
-  border-radius: 6px;
-  margin-bottom: 8px;
-}
-
-.legendLabels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  color: #cbd5e0;
-}
-
 .pieSection {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -397,11 +485,9 @@
   border-bottom: 1px solid #edf2f7;
 }
 
-@media (max-width: 900px) {
-  .pieSection {
-    grid-template-columns: 1fr; /* Stivuiește pe ecrane mai mici */
-    text-align: center;
-  }
+.pieChartWrap {
+  width: 100%;
+  min-height: 240px;
 }
 
 .pieDetails {
@@ -413,7 +499,7 @@
 .pieDetails h3 {
   margin: 0 0 10px 0;
   font-size: 1.4rem;
-  color: #2D3748;
+  color: #2d3748;
 }
 
 .pieDetails p {
@@ -422,24 +508,22 @@
   color: #4a5568;
 }
 
-.colorBoxTowing {
+.colorBoxTowing,
+.colorBoxTransport {
   display: inline-block;
   width: 16px;
   height: 16px;
-  background-color: var(--figma-teal-light);
   margin-right: 12px;
   vertical-align: middle;
   border-radius: 3px;
 }
 
+.colorBoxTowing {
+  background-color: var(--figma-teal-light);
+}
+
 .colorBoxTransport {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
   background-color: var(--figma-teal-dark);
-  margin-right: 12px;
-  vertical-align: middle;
-  border-radius: 3px;
 }
 
 .barSection {
@@ -453,6 +537,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .chartsFooter h3 {
@@ -463,9 +549,11 @@
   display: flex;
   font-size: 0.95rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
-.colorBoxTowingSmall, .colorBoxTransportSmall {
+.colorBoxTowingSmall,
+.colorBoxTransportSmall {
   display: inline-block;
   width: 12px;
   height: 12px;
@@ -474,5 +562,94 @@
   border-radius: 2px;
 }
 
-.colorBoxTowingSmall { background-color: var(--figma-teal-light); }
-.colorBoxTransportSmall { background-color: var(--figma-teal-dark); }
+.colorBoxTowingSmall {
+  background-color: var(--figma-teal-light);
+}
+
+.colorBoxTransportSmall {
+  background-color: var(--figma-teal-dark);
+}
+
+@media (max-width: 1080px) {
+  .dashboard {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: 0;
+    border-right: none;
+    border-bottom: 1px solid #e1e5ea;
+  }
+
+  .mainContent {
+    padding: 24px 18px;
+  }
+
+  .insightGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .pieSection {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .pieDetails {
+    align-items: center;
+  }
+}
+
+@media (max-width: 720px) {
+  .sidebarHeader h2 {
+    font-size: 1.5rem;
+    text-align: center;
+  }
+
+  .masterItem {
+    padding: 14px 16px;
+  }
+
+  .detailCard {
+    padding: 24px 18px;
+    margin: 14px;
+  }
+
+  .detailHeader {
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .detailHeader h1 {
+    font-size: 1.3rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .fullWidth {
+    grid-column: span 1;
+  }
+
+  .detailFooter {
+    justify-content: stretch;
+  }
+
+  .detailFooter button {
+    flex: 1 1 100%;
+  }
+
+  .pieSection,
+  .barSection {
+    padding: 24px 18px;
+  }
+
+  .chartsHeader,
+  .chartsFooter {
+    padding: 20px 18px;
+  }
+}

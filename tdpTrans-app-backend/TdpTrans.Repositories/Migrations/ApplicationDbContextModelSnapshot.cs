@@ -22,6 +22,184 @@ namespace TdpTrans.Repositories.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("TdpTrans.Models.ActivityLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ActionInformation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ActionType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GroupId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsSuccess")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("TimestampUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ActivityLogs");
+                });
+
+            modelBuilder.Entity("TdpTrans.Models.AppPermission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Permissions");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "Manage orders and operational data.",
+                            Name = "missions.manage"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "Use the real-time chat.",
+                            Name = "chat.use"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Description = "View suspicious users.",
+                            Name = "observations.view"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Description = "View recent activity logs.",
+                            Name = "logs.view"
+                        });
+                });
+
+            modelBuilder.Entity("TdpTrans.Models.AppRole", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "Administrator with full permissions.",
+                            Name = "admin"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "Standard user with limited permissions.",
+                            Name = "user"
+                        });
+                });
+
+            modelBuilder.Entity("TdpTrans.Models.AppUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAtUtc = new DateTime(2026, 5, 1, 8, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "admin@tdptrans.ro",
+                            FullName = "Administrator TDP",
+                            IsActive = true,
+                            PasswordHash = "A0CBF4B6172BCECA7ACAFAA11C0D7C7A7E64BA9C43B416BC3E8B94447380B0C2"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAtUtc = new DateTime(2026, 5, 1, 8, 5, 0, 0, DateTimeKind.Utc),
+                            Email = "sofer@tdptrans.ro",
+                            FullName = "Sofer TDP",
+                            IsActive = true,
+                            PasswordHash = "A0CBF4B6172BCECA7ACAFAA11C0D7C7A7E64BA9C43B416BC3E8B94447380B0C2"
+                        });
+                });
+
             modelBuilder.Entity("TdpTrans.Models.Client", b =>
                 {
                     b.Property<int>("Id")
@@ -86,6 +264,7 @@ namespace TdpTrans.Repositories.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Cost")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("Date")
@@ -155,6 +334,48 @@ namespace TdpTrans.Repositories.Migrations
                         });
                 });
 
+            modelBuilder.Entity("TdpTrans.Models.RolePermission", b =>
+                {
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PermissionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("RoleId", "PermissionId");
+
+                    b.HasIndex("PermissionId");
+
+                    b.ToTable("RolePermissions");
+
+                    b.HasData(
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 1
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 2
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 3
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 4
+                        },
+                        new
+                        {
+                            RoleId = 2,
+                            PermissionId = 2
+                        });
+                });
+
             modelBuilder.Entity("TdpTrans.Models.Truck", b =>
                 {
                     b.Property<int>("Id")
@@ -189,6 +410,81 @@ namespace TdpTrans.Repositories.Migrations
                         });
                 });
 
+            modelBuilder.Entity("TdpTrans.Models.UserObservation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("FirstDetectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastDetectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RiskScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserObservations");
+                });
+
+            modelBuilder.Entity("TdpTrans.Models.UserRole", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("UserRoles");
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = 1,
+                            RoleId = 1
+                        },
+                        new
+                        {
+                            UserId = 2,
+                            RoleId = 2
+                        });
+                });
+
+            modelBuilder.Entity("TdpTrans.Models.ActivityLog", b =>
+                {
+                    b.HasOne("TdpTrans.Models.AppUser", "User")
+                        .WithMany("ActivityLogs")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TdpTrans.Models.Mission", b =>
                 {
                     b.HasOne("TdpTrans.Models.Client", "Client")
@@ -206,6 +502,76 @@ namespace TdpTrans.Repositories.Migrations
                     b.Navigation("Client");
 
                     b.Navigation("Truck");
+                });
+
+            modelBuilder.Entity("TdpTrans.Models.RolePermission", b =>
+                {
+                    b.HasOne("TdpTrans.Models.AppPermission", "Permission")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TdpTrans.Models.AppRole", "Role")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("TdpTrans.Models.UserObservation", b =>
+                {
+                    b.HasOne("TdpTrans.Models.AppUser", "User")
+                        .WithMany("Observations")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TdpTrans.Models.UserRole", b =>
+                {
+                    b.HasOne("TdpTrans.Models.AppRole", "Role")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TdpTrans.Models.AppUser", "User")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TdpTrans.Models.AppPermission", b =>
+                {
+                    b.Navigation("RolePermissions");
+                });
+
+            modelBuilder.Entity("TdpTrans.Models.AppRole", b =>
+                {
+                    b.Navigation("RolePermissions");
+
+                    b.Navigation("UserRoles");
+                });
+
+            modelBuilder.Entity("TdpTrans.Models.AppUser", b =>
+                {
+                    b.Navigation("ActivityLogs");
+
+                    b.Navigation("Observations");
+
+                    b.Navigation("UserRoles");
                 });
 
             modelBuilder.Entity("TdpTrans.Models.Client", b =>

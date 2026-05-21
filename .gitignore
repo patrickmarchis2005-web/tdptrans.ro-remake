@@ -39,6 +39,9 @@ yarn-error.log*
 # Configuratii locale si fisiere secrete
 appsettings.Development.json
 appsettings.Local.json
+tdpTrans-app-backend/TdpTrans.Controllers/App_Data/*.db
+tdpTrans-app-backend/TdpTrans.Controllers/App_Data/*.db-shm
+tdpTrans-app-backend/TdpTrans.Controllers/App_Data/*.db-wal
 
 # Fisiere generate de IDE-uri (Rider, VS Code)
 .idea/

@@ -1,0 +1,301 @@
+.chatShell {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.launcher {
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff8c00 0%, #f97316 100%);
+  color: #ffffff;
+  padding: 14px 18px;
+  box-shadow: 0 18px 35px rgba(255, 140, 0, 0.28);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.unread {
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(24, 36, 51, 0.24);
+  font-size: 0.78rem;
+}
+
+.panel {
+  width: min(390px, calc(100vw - 24px));
+  height: min(560px, calc(100vh - 100px));
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(24, 36, 51, 0.1);
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 28px 60px rgba(24, 36, 51, 0.22);
+  display: flex;
+  flex-direction: column;
+}
+
+.panelHeader {
+  padding: 18px 20px;
+  background: linear-gradient(135deg, #223041 0%, #354151 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.titleBlock h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.titleBlock p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.88rem;
+}
+
+.status {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.contactsBar {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(24, 36, 51, 0.08);
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.contactsState {
+  color: #667588;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.contactList {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.contactChip {
+  border: 1px solid rgba(24, 36, 51, 0.1);
+  background: #f5f7fa;
+  color: #182433;
+  border-radius: 18px;
+  padding: 10px 12px;
+  min-width: 130px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  cursor: pointer;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.contactChipActive {
+  background: linear-gradient(135deg, #223041 0%, #354151 100%);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.contactName {
+  font-weight: 700;
+  font-size: 0.86rem;
+  line-height: 1.3;
+  text-align: left;
+}
+
+.contactRole {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.78;
+}
+
+.contactUnread {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ff8c00;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.messages {
+  flex: 1;
+  padding: 18px;
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at top left, rgba(255, 140, 0, 0.08), transparent 24%),
+    linear-gradient(180deg, #f7fafc 0%, #eef3f6 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.emptyState {
+  margin: auto 0;
+  text-align: center;
+  color: #667588;
+  line-height: 1.6;
+}
+
+.messageRow {
+  display: flex;
+}
+
+.mine {
+  justify-content: flex-end;
+}
+
+.theirs {
+  justify-content: flex-start;
+}
+
+.bubble {
+  max-width: 82%;
+  padding: 12px 14px;
+  border-radius: 18px;
+  box-shadow: 0 10px 22px rgba(24, 36, 51, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mine .bubble {
+  background: linear-gradient(135deg, #223041 0%, #354151 100%);
+  color: #ffffff;
+  border-bottom-right-radius: 6px;
+}
+
+.theirs .bubble {
+  background: #ffffff;
+  color: #182433;
+  border: 1px solid rgba(24, 36, 51, 0.08);
+  border-bottom-left-radius: 6px;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.74rem;
+}
+
+.mine .meta {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.theirs .meta {
+  color: #667588;
+}
+
+.roleTag {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 140, 0, 0.12);
+  color: #a85300;
+  font-weight: 700;
+  font-size: 0.7rem;
+}
+
+.mine .roleTag {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.messageText {
+  margin: 0;
+  line-height: 1.55;
+  word-break: break-word;
+}
+
+.composer {
+  padding: 16px 18px 18px;
+  border-top: 1px solid rgba(24, 36, 51, 0.08);
+  display: flex;
+  gap: 10px;
+  background: #ffffff;
+}
+
+.composer textarea {
+  flex: 1;
+  resize: none;
+  border: 1px solid rgba(24, 36, 51, 0.14);
+  border-radius: 18px;
+  padding: 12px 14px;
+  min-height: 52px;
+  max-height: 120px;
+  color: #182433;
+}
+
+.composer textarea:focus {
+  outline: none;
+  border-color: #ff8c00;
+  box-shadow: 0 0 0 4px rgba(255, 140, 0, 0.14);
+}
+
+.sendButton {
+  border: none;
+  border-radius: 18px;
+  background: #223041;
+  color: #ffffff;
+  padding: 0 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sendButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .chatShell {
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+    align-items: stretch;
+  }
+
+  .launcher {
+    justify-content: center;
+  }
+
+  .panel {
+    width: 100%;
+    height: min(72vh, 560px);
+  }
+}

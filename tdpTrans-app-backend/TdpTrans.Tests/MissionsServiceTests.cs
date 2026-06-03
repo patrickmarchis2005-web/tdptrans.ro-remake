@@ -255,6 +255,54 @@ namespace TdpTrans.Tests
         }
 
         [Fact]
+        public async Task AddMission_WithUnspecifiedDate_NormalizesDateToUtc()
+        {
+            var truck = new Truck
+            {
+                Id = 100400,
+                LicensePlate = "CJ 10 AAA"
+            };
+            var client = new Client
+            {
+                Id = 101,
+                Name = "Client 1",
+                Phone = "0705123456",
+                Email = "client1@gmail.com"
+            };
+            Mission? capturedMission = null;
+
+            _mockClientsRepo.Setup(repo => repo.GetClientByEmail("client1@gmail.com")).ReturnsAsync(client);
+            _mockTrucksRepo.Setup(repo => repo.GetTruckById(100400)).ReturnsAsync(truck);
+            _mockMissionsRepo
+                .Setup(repo => repo.AddMission(It.IsAny<Mission>()))
+                .Callback<Mission>(mission => capturedMission = mission)
+                .ReturnsAsync((Mission mission) =>
+                {
+                    mission.Id = 1;
+                    return mission;
+                });
+
+            var requestedDate = new DateTime(2026, 6, 3);
+            var request = new CreateMissionRequest(
+                "Transport",
+                100400,
+                requestedDate,
+                300m,
+                "Client 1",
+                "0705123456",
+                "Str. Campului nr. 2",
+                "client1@gmail.com",
+                "Programata");
+
+            var newId = await _service.AddMission(request);
+
+            Assert.Equal(1, newId);
+            Assert.NotNull(capturedMission);
+            Assert.Equal(DateTimeKind.Utc, capturedMission!.Date.Kind);
+            Assert.Equal(DateTime.SpecifyKind(requestedDate, DateTimeKind.Utc), capturedMission.Date);
+        }
+
+        [Fact]
         public async Task DeleteMissionById_WithNegativeId_ThrowsArgumentException()
         {
             // Arrange

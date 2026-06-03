@@ -26,6 +26,20 @@ const formatDateTime = (timestamp) =>
     timeStyle: 'short',
   }).format(new Date(timestamp));
 
+const normalizeMissionDateForApi = (value) => {
+  const trimmedValue = value?.trim() ?? '';
+
+  if (!trimmedValue) {
+    return new Date().toISOString();
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmedValue)) {
+    return `${trimmedValue}T00:00:00Z`;
+  }
+
+  return trimmedValue;
+};
+
 const getRiskBadgeClass = (riskScore) => {
   if (riskScore >= 80) {
     return styles.riskHigh;
@@ -213,7 +227,7 @@ function Comenzi() {
         ...formData,
         cost: Number(formData.cost) || 0,
         truckId: Number(formData.truckId) || 0,
-        date: formData.date?.trim() ? formData.date : new Date().toISOString(),
+        date: normalizeMissionDateForApi(formData.date),
       };
 
       if (isAdding) {

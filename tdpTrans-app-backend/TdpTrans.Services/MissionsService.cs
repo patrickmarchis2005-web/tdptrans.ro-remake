@@ -63,7 +63,7 @@ namespace TdpTrans.Services
             {
                 Type = missionType,
                 Status = missionStatus,
-                Date = request.Date,
+                Date = NormalizeMissionDate(request.Date),
                 Cost = request.Cost,
                 Address = request.Address,
                 ClientId = client.Id,
@@ -241,7 +241,7 @@ namespace TdpTrans.Services
 
             if (request.Date.HasValue)
             {
-                searchedMission.Date = request.Date.Value;
+                searchedMission.Date = NormalizeMissionDate(request.Date.Value);
             }
 
             if (request.Cost.HasValue)
@@ -285,6 +285,16 @@ namespace TdpTrans.Services
             {
                 await _userAccessService.EnsurePermission(actorUserId.Value, PermissionNames.MissionsManage, actionDescription);
             }
+        }
+
+        private static DateTime NormalizeMissionDate(DateTime date)
+        {
+            return date.Kind switch
+            {
+                DateTimeKind.Utc => date,
+                DateTimeKind.Local => date.ToUniversalTime(),
+                _ => DateTime.SpecifyKind(date, DateTimeKind.Utc),
+            };
         }
     }
 }

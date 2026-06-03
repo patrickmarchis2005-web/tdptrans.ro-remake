@@ -120,7 +120,7 @@ namespace TdpTrans.Repositories
                     Status = MissionStatus.Programata,
                     Cost = 1500.00m,
                     Address = "Strada Lunga 10, Cluj-Napoca",
-                    Date = new DateTime(2026, 5, 10)
+                    Date = new DateTime(2026, 5, 10, 0, 0, 0, DateTimeKind.Utc)
                 },
                 new Mission
                 {
@@ -131,7 +131,7 @@ namespace TdpTrans.Repositories
                     Status = MissionStatus.Finalizata,
                     Cost = 450.50m,
                     Address = "Autostrada A3, km 25",
-                    Date = new DateTime(2026, 5, 1)
+                    Date = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc)
                 },
                 new Mission
                 {
@@ -142,7 +142,7 @@ namespace TdpTrans.Repositories
                     Status = MissionStatus.In_desfasurare,
                     Cost = 3200.00m,
                     Address = "Bulevardul Unirii, Bucuresti",
-                    Date = new DateTime(2026, 5, 5)
+                    Date = new DateTime(2026, 5, 5, 0, 0, 0, DateTimeKind.Utc)
                 },
                 new Mission
                 {
@@ -153,7 +153,7 @@ namespace TdpTrans.Repositories
                     Status = MissionStatus.Programata,
                     Cost = 800.00m,
                     Address = "Soseaua Vestului, Ploiesti",
-                    Date = new DateTime(2026, 5, 15)
+                    Date = new DateTime(2026, 5, 15, 0, 0, 0, DateTimeKind.Utc)
                 }
             );
 

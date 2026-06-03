@@ -109,10 +109,10 @@ const Acasa = () => {
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <span className={styles.sectionKicker}>Servicii principale</span>
-          <h2 className={styles.sectionTitle}>Paginile din prezentare sunt acum implementate separat.</h2>
+          <h2 className={styles.sectionTitle}>Peste 20 de ani de experienta.</h2>
           <p className={styles.sectionLead}>
-            Din pagina principala poti intra direct in sectiunile dedicate pentru servicii, pret,
-            flota si contact, fara sa pierzi accesul la functionalitatile existente ale aplicatiei.
+            Dacă aveți marfă fragilă sau de valoare, în mâinile noastre va ajunge în siguranță la destinație.
+            Tractăm autoturisme și autoutilitare de până la 6m lungime cu greutate de până la 2700 kg.
           </p>
         </div>
 
@@ -150,8 +150,7 @@ const Acasa = () => {
         <article className={styles.adminPanel}>
           <h2 className={styles.panelTitle}>Administrare comenzi</h2>
           <p className={styles.helperText}>
-            Accesul catre modulul operational ramane disponibil doar pentru administrator, exact ca in
-            implementarea existenta.
+            Doar pentru administratori.
           </p>
           <button
             type="button"
@@ -170,8 +169,8 @@ const Acasa = () => {
 
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
-          <span className={styles.sectionKicker}>Mai multe pagini</span>
-          <h2 className={styles.sectionTitle}>Home page-ul trimite acum spre pagini reale de prezentare.</h2>
+          <span className={styles.sectionKicker}>Mai multe pagini utile</span>
+          <h2 className={styles.sectionTitle}>Ai nevoie de mai multe informatii? Iata si alte pagini care te pot ajuta.</h2>
         </div>
 
         <div className={styles.cardGrid}>

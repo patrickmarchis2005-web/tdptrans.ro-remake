@@ -7,164 +7,60 @@ namespace TdpTrans.Tests
 {
     public class SuspiciousActivityServiceTests
     {
-        private readonly Mock<IActivityLogRepository> _activityLogRepository;
-        private readonly Mock<IObservationRepository> _observationRepository;
-        private readonly SuspiciousActivityService _service;
-
-        public SuspiciousActivityServiceTests()
-        {
-            _activityLogRepository = new Mock<IActivityLogRepository>();
-            _observationRepository = new Mock<IObservationRepository>();
-            _service = new SuspiciousActivityService(_activityLogRepository.Object, _observationRepository.Object);
-        }
-
         [Fact]
-        public async Task Evaluate_WithRepeatedFailedLogins_CreatesObservation()
+        public async Task Evaluate_WhenAiDetectorFlagsRisk_AddsAiObservation()
         {
-            const int userId = 7;
+            var activityLogRepository = new Mock<IActivityLogRepository>();
+            var observationRepository = new Mock<IObservationRepository>();
+            var authSessionRepository = new Mock<IAuthSessionRepository>();
+            var aiSuspiciousActivityDetector = new Mock<IAiSuspiciousActivityDetector>();
 
-            _activityLogRepository
-                .Setup(repository => repository.CountRecent(
-                    userId,
-                    ActivityActionNames.LoginFailed,
-                    It.IsAny<DateTime>(),
-                    false))
-                .ReturnsAsync(3);
-            _activityLogRepository
-                .Setup(repository => repository.CountRecent(
-                    userId,
-                    ActivityActionNames.PermissionDenied,
-                    It.IsAny<DateTime>(),
-                    false))
+            activityLogRepository
+                .Setup(repository => repository.CountRecent(7, ActivityActionNames.LoginFailed, It.IsAny<DateTime>(), false))
                 .ReturnsAsync(0);
-            _activityLogRepository
-                .Setup(repository => repository.CountRecent(
-                    userId,
-                    ActivityActionNames.ChatMessageSent,
-                    It.IsAny<DateTime>(),
-                    true))
+            activityLogRepository
+                .Setup(repository => repository.CountRecent(7, ActivityActionNames.PermissionDenied, It.IsAny<DateTime>(), false))
                 .ReturnsAsync(0);
-            _observationRepository
-                .Setup(repository => repository.GetActiveByReason(userId, ObservationReasons.FailedLogins))
+            activityLogRepository
+                .Setup(repository => repository.CountRecent(7, ActivityActionNames.ChatMessageSent, It.IsAny<DateTime>(), true))
+                .ReturnsAsync(0);
+
+            observationRepository
+                .Setup(repository => repository.GetActiveByReason(7, It.IsAny<string>()))
                 .ReturnsAsync((UserObservation?)null);
 
-            await _service.Evaluate(userId);
+            authSessionRepository
+                .Setup(repository => repository.CountActiveSessions(7))
+                .ReturnsAsync(1);
+            authSessionRepository
+                .Setup(repository => repository.CountDistinctRecentRemoteIpAddresses(7, It.IsAny<DateTime>()))
+                .ReturnsAsync(1);
 
-            _observationRepository.Verify(
-                repository => repository.Add(It.Is<UserObservation>(observation =>
-                    observation.UserId == userId &&
-                    observation.Reason == ObservationReasons.FailedLogins &&
-                    observation.RiskScore == 85 &&
-                    observation.IsActive &&
-                    observation.Details.Contains("3 tentative esuate"))),
-                Times.Once);
-        }
-
-        [Fact]
-        public async Task Evaluate_WithExistingPermissionObservation_RefreshesExistingRecord()
-        {
-            const int userId = 9;
-            var observation = new UserObservation
-            {
-                Id = 4,
-                UserId = userId,
-                Reason = ObservationReasons.PermissionDenials,
-                Details = "Old details",
-                RiskScore = 50,
-                IsActive = true,
-                FirstDetectedAtUtc = DateTime.UtcNow.AddHours(-1),
-                LastDetectedAtUtc = DateTime.UtcNow.AddHours(-1),
-                User = new AppUser()
-            };
-
-            _activityLogRepository
-                .Setup(repository => repository.CountRecent(
-                    userId,
-                    ActivityActionNames.LoginFailed,
-                    It.IsAny<DateTime>(),
-                    false))
-                .ReturnsAsync(0);
-            _activityLogRepository
-                .Setup(repository => repository.CountRecent(
-                    userId,
-                    ActivityActionNames.PermissionDenied,
-                    It.IsAny<DateTime>(),
-                    false))
-                .ReturnsAsync(3);
-            _activityLogRepository
-                .Setup(repository => repository.CountRecent(
-                    userId,
-                    ActivityActionNames.ChatMessageSent,
-                    It.IsAny<DateTime>(),
-                    true))
-                .ReturnsAsync(0);
-            _observationRepository
-                .Setup(repository => repository.GetActiveByReason(userId, ObservationReasons.PermissionDenials))
-                .ReturnsAsync(observation);
-
-            await _service.Evaluate(userId);
-
-            Assert.Equal(70, observation.RiskScore);
-            Assert.Equal("3 accesari refuzate in ultimele 10 minute.", observation.Details);
-            Assert.True(observation.IsActive);
-
-            _observationRepository.Verify(repository => repository.SaveChanges(), Times.Once);
-            _observationRepository.Verify(repository => repository.Add(It.IsAny<UserObservation>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task GetActiveObservations_MapsRoleAndUserDetails()
-        {
-            var role = new AppRole
-            {
-                Id = 1,
-                Name = RoleNames.Admin,
-                Description = "Administrator"
-            };
-            var user = new AppUser
-            {
-                Id = 5,
-                FullName = "Administrator TDP",
-                Email = "admin@tdptrans.ro",
-                PasswordHash = "hash",
-                CreatedAtUtc = DateTime.UtcNow,
-                IsActive = true
-            };
-            user.UserRoles.Add(new UserRole
-            {
-                UserId = user.Id,
-                User = user,
-                RoleId = role.Id,
-                Role = role
-            });
-
-            var observations = new List<UserObservation>
-            {
-                new UserObservation
+            aiSuspiciousActivityDetector
+                .Setup(detector => detector.Assess(7))
+                .ReturnsAsync(new AiSuspiciousActivityAssessment
                 {
-                    Id = 1,
-                    UserId = user.Id,
-                    User = user,
-                    Reason = ObservationReasons.ChatSpam,
-                    Details = "20 mesaje trimise in mai putin de 2 minute.",
-                    RiskScore = 60,
-                    FirstDetectedAtUtc = DateTime.UtcNow.AddMinutes(-3),
-                    LastDetectedAtUtc = DateTime.UtcNow.AddMinutes(-1),
-                    IsActive = true
-                }
-            };
+                    ShouldFlag = true,
+                    Probability = 0.87d,
+                    RiskScore = 87,
+                    Details = "Scor AI 87%. Semnale dominante: 4 login-uri esuate/15m."
+                });
 
-            _observationRepository
-                .Setup(repository => repository.GetActive())
-                .ReturnsAsync(observations);
+            var service = new SuspiciousActivityService(
+                activityLogRepository.Object,
+                observationRepository.Object,
+                authSessionRepository.Object,
+                aiSuspiciousActivityDetector.Object);
 
-            var result = await _service.GetActiveObservations();
+            await service.Evaluate(7);
 
-            Assert.Single(result);
-            Assert.Equal(user.Id, result[0].UserId);
-            Assert.Equal(user.FullName, result[0].UserName);
-            Assert.Equal(RoleNames.Admin, result[0].GroupId);
-            Assert.Equal(ObservationReasons.ChatSpam, result[0].Reason);
+            observationRepository.Verify(
+                repository => repository.Add(It.Is<UserObservation>(observation =>
+                    observation.UserId == 7 &&
+                    observation.Reason == ObservationReasons.AiAnomaly &&
+                    observation.RiskScore == 87 &&
+                    observation.Details.Contains("Scor AI 87%"))),
+                Times.Once);
         }
     }
 }

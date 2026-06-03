@@ -8,13 +8,19 @@ namespace TdpTrans.Services
     {
         private readonly IActivityLogRepository _activityLogRepository;
         private readonly IObservationRepository _observationRepository;
+        private readonly IAuthSessionRepository _authSessionRepository;
+        private readonly IAiSuspiciousActivityDetector _aiSuspiciousActivityDetector;
 
         public SuspiciousActivityService(
             IActivityLogRepository activityLogRepository,
-            IObservationRepository observationRepository)
+            IObservationRepository observationRepository,
+            IAuthSessionRepository authSessionRepository,
+            IAiSuspiciousActivityDetector aiSuspiciousActivityDetector)
         {
             _activityLogRepository = activityLogRepository;
             _observationRepository = observationRepository;
+            _authSessionRepository = authSessionRepository;
+            _aiSuspiciousActivityDetector = aiSuspiciousActivityDetector;
         }
 
         public async Task Evaluate(int userId)
@@ -27,15 +33,13 @@ namespace TdpTrans.Services
                 now.AddMinutes(-15),
                 false);
 
-            if (failedLoginCount >= 3)
-            {
-                await UpsertObservation(
-                    userId,
-                    ObservationReasons.FailedLogins,
-                    $"{failedLoginCount} tentative esuate de autentificare in ultimele 15 minute.",
-                    85,
-                    now);
-            }
+            await UpsertOrResolveObservation(
+                userId,
+                ObservationReasons.FailedLogins,
+                failedLoginCount >= 3,
+                $"{failedLoginCount} tentative esuate de autentificare in ultimele 15 minute.",
+                Math.Min(95, 45 + failedLoginCount * 10),
+                now);
 
             var permissionDeniedCount = await _activityLogRepository.CountRecent(
                 userId,
@@ -43,15 +47,13 @@ namespace TdpTrans.Services
                 now.AddMinutes(-10),
                 false);
 
-            if (permissionDeniedCount >= 3)
-            {
-                await UpsertObservation(
-                    userId,
-                    ObservationReasons.PermissionDenials,
-                    $"{permissionDeniedCount} accesari refuzate in ultimele 10 minute.",
-                    70,
-                    now);
-            }
+            await UpsertOrResolveObservation(
+                userId,
+                ObservationReasons.PermissionProbe,
+                permissionDeniedCount >= 3,
+                $"{permissionDeniedCount} accesari refuzate in ultimele 10 minute.",
+                Math.Min(90, 35 + permissionDeniedCount * 8),
+                now);
 
             var chatMessageCount = await _activityLogRepository.CountRecent(
                 userId,
@@ -59,15 +61,33 @@ namespace TdpTrans.Services
                 now.AddMinutes(-2),
                 true);
 
-            if (chatMessageCount >= 20)
-            {
-                await UpsertObservation(
-                    userId,
-                    ObservationReasons.ChatSpam,
-                    $"{chatMessageCount} mesaje trimise in mai putin de 2 minute.",
-                    60,
-                    now);
-            }
+            await UpsertOrResolveObservation(
+                userId,
+                ObservationReasons.ChatBurst,
+                chatMessageCount >= 20,
+                $"{chatMessageCount} mesaje trimise in mai putin de 2 minute.",
+                Math.Min(80, 25 + chatMessageCount * 2),
+                now);
+
+            var activeSessionCount = await _authSessionRepository.CountActiveSessions(userId);
+            var distinctRecentIpCount = await _authSessionRepository.CountDistinctRecentRemoteIpAddresses(userId, now.AddHours(-12));
+
+            await UpsertOrResolveObservation(
+                userId,
+                ObservationReasons.MultiSessionIpDrift,
+                activeSessionCount >= 3 && distinctRecentIpCount >= 2,
+                $"{activeSessionCount} sesiuni active provenite din {distinctRecentIpCount} IP-uri diferite in ultimele 12 ore.",
+                Math.Min(92, 40 + activeSessionCount * 9 + distinctRecentIpCount * 7),
+                now);
+
+            var aiAssessment = await _aiSuspiciousActivityDetector.Assess(userId);
+            await UpsertOrResolveObservation(
+                userId,
+                ObservationReasons.AiAnomaly,
+                aiAssessment?.ShouldFlag == true,
+                aiAssessment?.Details ?? "Scorul AI nu indica un risc crescut pentru acest utilizator.",
+                aiAssessment?.RiskScore ?? 0,
+                now);
         }
 
         public async Task<IReadOnlyList<ObservationResponse>> GetActiveObservations()
@@ -90,9 +110,27 @@ namespace TdpTrans.Services
                 .ToArray();
         }
 
-        private async Task UpsertObservation(int userId, string reason, string details, int riskScore, DateTime detectedAtUtc)
+        private async Task UpsertOrResolveObservation(
+            int userId,
+            string reason,
+            bool shouldBeActive,
+            string details,
+            int riskScore,
+            DateTime detectedAtUtc)
         {
             var existingObservation = await _observationRepository.GetActiveByReason(userId, reason);
+            if (!shouldBeActive)
+            {
+                if (existingObservation != null)
+                {
+                    existingObservation.IsActive = false;
+                    existingObservation.LastDetectedAtUtc = detectedAtUtc;
+                    await _observationRepository.SaveChanges();
+                }
+
+                return;
+            }
+
             if (existingObservation == null)
             {
                 await _observationRepository.Add(new UserObservation
@@ -109,7 +147,7 @@ namespace TdpTrans.Services
             }
 
             existingObservation.Details = details;
-            existingObservation.RiskScore = Math.Max(existingObservation.RiskScore, riskScore);
+            existingObservation.RiskScore = riskScore;
             existingObservation.LastDetectedAtUtc = detectedAtUtc;
             existingObservation.IsActive = true;
 

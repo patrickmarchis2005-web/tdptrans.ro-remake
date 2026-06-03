@@ -1,5 +1,5 @@
-import { API_BASE } from './config';
-import { buildAuthHeaders } from '../utils/session';
+import { getApiBase } from './config';
+import { buildAuthHeaders, handleUnauthorizedSession } from '../utils/session';
 
 const parseChatError = async (response, fallbackMessage) => {
   const text = await response.text();
@@ -7,9 +7,13 @@ const parseChatError = async (response, fallbackMessage) => {
 };
 
 export const fetchChatContacts = async () => {
-  const response = await fetch(`${API_BASE}/chat/contacts`, {
+  const response = await fetch(`${getApiBase()}/chat/contacts`, {
     headers: buildAuthHeaders(),
   });
+
+  if (handleUnauthorizedSession(response)) {
+    throw new Error('Sesiunea a expirat. Autentifica-te din nou.');
+  }
 
   if (!response.ok) {
     await parseChatError(response, 'Lista conversatiilor nu a putut fi incarcata.');
@@ -19,9 +23,13 @@ export const fetchChatContacts = async () => {
 };
 
 export const fetchChatHistory = async (withUserId, take = 40) => {
-  const response = await fetch(`${API_BASE}/chat/history?withUserId=${withUserId}&take=${take}`, {
+  const response = await fetch(`${getApiBase()}/chat/history?withUserId=${withUserId}&take=${take}`, {
     headers: buildAuthHeaders(),
   });
+
+  if (handleUnauthorizedSession(response)) {
+    throw new Error('Sesiunea a expirat. Autentifica-te din nou.');
+  }
 
   if (!response.ok) {
     await parseChatError(response, 'Istoricul conversatiei nu a putut fi incarcat.');
@@ -31,7 +39,7 @@ export const fetchChatHistory = async (withUserId, take = 40) => {
 };
 
 export const sendChatMessage = async (recipientUserId, message) => {
-  const response = await fetch(`${API_BASE}/chat/messages`, {
+  const response = await fetch(`${getApiBase()}/chat/messages`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -42,6 +50,10 @@ export const sendChatMessage = async (recipientUserId, message) => {
       message,
     }),
   });
+
+  if (handleUnauthorizedSession(response)) {
+    throw new Error('Sesiunea a expirat. Autentifica-te din nou.');
+  }
 
   if (!response.ok) {
     await parseChatError(response, 'Mesajul nu a putut fi trimis.');

@@ -18,7 +18,9 @@ namespace TdpTrans.Repositories
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<ActivityLog> ActivityLogs { get; set; }
+        public DbSet<AuthSession> AuthSessions { get; set; }
         public DbSet<UserObservation> UserObservations { get; set; }
+        public DbSet<ChatMessageDocument> ChatMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -36,15 +38,46 @@ namespace TdpTrans.Repositories
                 .HasIndex(permission => permission.Name)
                 .IsUnique();
 
+            modelBuilder.Entity<AuthSession>()
+                .HasIndex(session => session.TokenHash)
+                .IsUnique();
+
+            modelBuilder.Entity<ActivityLog>()
+                .HasIndex(activityLog => new { activityLog.UserId, activityLog.ActionType, activityLog.TimestampUtc });
+
+            modelBuilder.Entity<ActivityLog>()
+                .HasIndex(activityLog => new { activityLog.GroupId, activityLog.TimestampUtc });
+
+            modelBuilder.Entity<AuthSession>()
+                .HasIndex(session => new { session.UserId, session.RevokedAtUtc, session.LastActivityAtUtc });
+
+            modelBuilder.Entity<AuthSession>()
+                .HasIndex(session => new { session.UserId, session.RemoteIpAddress, session.CreatedAtUtc });
+
+            modelBuilder.Entity<ChatMessageDocument>()
+                .HasIndex(message => new { message.ConversationKey, message.TimestampUtc });
+
+            modelBuilder.Entity<ChatMessageDocument>()
+                .HasIndex(message => new { message.SenderUserId, message.RecipientUserId, message.TimestampUtc });
+
             modelBuilder.Entity<Mission>()
                 .Property(mission => mission.Cost)
                 .HasPrecision(18, 2);
 
+            modelBuilder.Entity<Mission>()
+                .HasIndex(mission => new { mission.Date, mission.ClientId, mission.TruckId });
+
             modelBuilder.Entity<UserRole>()
                 .HasKey(userRole => new { userRole.UserId, userRole.RoleId });
 
+            modelBuilder.Entity<UserRole>()
+                .HasIndex(userRole => new { userRole.RoleId, userRole.UserId });
+
             modelBuilder.Entity<RolePermission>()
                 .HasKey(rolePermission => new { rolePermission.RoleId, rolePermission.PermissionId });
+
+            modelBuilder.Entity<RolePermission>()
+                .HasIndex(rolePermission => new { rolePermission.PermissionId, rolePermission.RoleId });
 
             modelBuilder.Entity<ActivityLog>()
                 .HasOne(activityLog => activityLog.User)
@@ -52,11 +85,20 @@ namespace TdpTrans.Repositories
                 .HasForeignKey(activityLog => activityLog.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            modelBuilder.Entity<AuthSession>()
+                .HasOne(session => session.User)
+                .WithMany(user => user.Sessions)
+                .HasForeignKey(session => session.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<UserObservation>()
                 .HasOne(observation => observation.User)
-                .WithMany(user => user.Observations)
+                .WithMany()
                 .HasForeignKey(observation => observation.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserObservation>()
+                .HasIndex(observation => new { observation.UserId, observation.IsActive, observation.LastDetectedAtUtc });
 
             var client1 = new Client { Id = 1, Name = "Tech Logistics SRL", Phone = "0722111222", Email = "contact@techlog.ro" };
             var client2 = new Client { Id = 2, Name = "Auto Depanare SA", Phone = "0733444555", Email = "office@autodepanare.ro" };
@@ -123,8 +165,9 @@ namespace TdpTrans.Repositories
             modelBuilder.Entity<AppPermission>().HasData(
                 new AppPermission { Id = 1, Name = PermissionNames.MissionsManage, Description = "Manage orders and operational data." },
                 new AppPermission { Id = 2, Name = PermissionNames.ChatUse, Description = "Use the real-time chat." },
-                new AppPermission { Id = 3, Name = PermissionNames.ObservationsView, Description = "View suspicious users." },
-                new AppPermission { Id = 4, Name = PermissionNames.LogsView, Description = "View recent activity logs." }
+                new AppPermission { Id = 4, Name = PermissionNames.LogsView, Description = "View recent activity logs." },
+                new AppPermission { Id = 5, Name = PermissionNames.ObservationsView, Description = "View suspicious-user observations." },
+                new AppPermission { Id = 6, Name = PermissionNames.SecurityLabManage, Description = "Manage security benchmarking and load generation." }
             );
 
             modelBuilder.Entity<AppUser>().HasData(
@@ -134,6 +177,8 @@ namespace TdpTrans.Repositories
                     FullName = "Administrator TDP",
                     Email = "admin@tdptrans.ro",
                     PasswordHash = CredentialHasher.HashPassword("12345678"),
+                    SecurityCodeHash = CredentialHasher.HashSecurityCode("246810"),
+                    AuthenticationPhraseHash = CredentialHasher.HashAuthenticationPhrase("TDP-ADMIN"),
                     IsActive = true,
                     CreatedAtUtc = new DateTime(2026, 5, 1, 8, 0, 0, DateTimeKind.Utc)
                 },
@@ -143,6 +188,8 @@ namespace TdpTrans.Repositories
                     FullName = "Sofer TDP",
                     Email = "sofer@tdptrans.ro",
                     PasswordHash = CredentialHasher.HashPassword("12345678"),
+                    SecurityCodeHash = CredentialHasher.HashSecurityCode("135790"),
+                    AuthenticationPhraseHash = CredentialHasher.HashAuthenticationPhrase("TDP-USER"),
                     IsActive = true,
                     CreatedAtUtc = new DateTime(2026, 5, 1, 8, 5, 0, DateTimeKind.Utc)
                 }
@@ -156,8 +203,9 @@ namespace TdpTrans.Repositories
             modelBuilder.Entity<RolePermission>().HasData(
                 new RolePermission { RoleId = 1, PermissionId = 1 },
                 new RolePermission { RoleId = 1, PermissionId = 2 },
-                new RolePermission { RoleId = 1, PermissionId = 3 },
                 new RolePermission { RoleId = 1, PermissionId = 4 },
+                new RolePermission { RoleId = 1, PermissionId = 5 },
+                new RolePermission { RoleId = 1, PermissionId = 6 },
                 new RolePermission { RoleId = 2, PermissionId = 2 }
             );
         }

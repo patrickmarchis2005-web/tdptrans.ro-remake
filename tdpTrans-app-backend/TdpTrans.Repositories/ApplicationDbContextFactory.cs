@@ -9,10 +9,10 @@ namespace TdpTrans.Repositories
         {
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
             var controllersProjectPath = SqliteConnectionStringFactory.ResolveControllersContentRoot(Directory.GetCurrentDirectory());
+            var configuredConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+                ?? Environment.GetEnvironmentVariable("DATABASE_URL");
 
-            optionsBuilder.UseSqlite(
-                SqliteConnectionStringFactory.Create(null, controllersProjectPath),
-                sqliteOptions => sqliteOptions.MigrationsAssembly("TdpTrans.Repositories"));
+            SqliteConnectionStringFactory.Configure(optionsBuilder, configuredConnectionString, controllersProjectPath);
 
             return new ApplicationDbContext(optionsBuilder.Options);
         }

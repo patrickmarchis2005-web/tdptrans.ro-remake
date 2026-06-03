@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { fetchActivityLogs, fetchObservations } from '../api/adminApi';
+import { fetchActivityLogs, fetchObservations, fetchSecurityStatistics, seedSecurityLab } from '../api/adminApi';
 import { createMission, deleteMission, fetchMissions, fetchStatistics, updateMission } from '../api/missionsApi';
 import Grafice from '../components/Grafice';
 import { missionSchema } from '../utils.js';
@@ -26,6 +26,18 @@ const formatDateTime = (timestamp) =>
     timeStyle: 'short',
   }).format(new Date(timestamp));
 
+const getRiskBadgeClass = (riskScore) => {
+  if (riskScore >= 80) {
+    return styles.riskHigh;
+  }
+
+  if (riskScore >= 60) {
+    return styles.riskMedium;
+  }
+
+  return styles.riskLow;
+};
+
 function Comenzi() {
   const navigate = useNavigate();
   const [currentUser] = useState(() => getStoredUser());
@@ -39,7 +51,11 @@ function Comenzi() {
   const [stats, setStats] = useState({ totalComenzi: 0, totalTransportMarfa: 0, totalTractari: 0 });
   const [activityLogs, setActivityLogs] = useState([]);
   const [observations, setObservations] = useState([]);
+  const [securityBenchmark, setSecurityBenchmark] = useState({ optimized: null, naive: null });
+  const [seedSummary, setSeedSummary] = useState(null);
   const [panelError, setPanelError] = useState('');
+  const [isBenchmarkLoading, setIsBenchmarkLoading] = useState(false);
+  const [isSeedingSecurityLab, setIsSeedingSecurityLab] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 5;
@@ -80,16 +96,24 @@ function Comenzi() {
 
   const incarcaPanourileAdmin = async () => {
     try {
-      const [logsData, observationsData] = await Promise.all([
+      setIsBenchmarkLoading(true);
+      const [logsData, observationsData, optimizedStats, naiveStats] = await Promise.all([
         fetchActivityLogs(),
         fetchObservations(),
+        fetchSecurityStatistics('optimized', 24),
+        fetchSecurityStatistics('naive', 24),
       ]);
-
       setActivityLogs(logsData);
       setObservations(observationsData);
+      setSecurityBenchmark({
+        optimized: optimizedStats,
+        naive: naiveStats,
+      });
       setPanelError('');
     } catch (error) {
       setPanelError(error.message);
+    } finally {
+      setIsBenchmarkLoading(false);
     }
   };
 
@@ -144,6 +168,26 @@ function Comenzi() {
       incarcaPanourileAdmin(),
     ]);
   };
+
+  const handleSeedSecurityLab = async () => {
+    try {
+      setPanelError('');
+      setIsSeedingSecurityLab(true);
+      const response = await seedSecurityLab();
+      setSeedSummary(response);
+      await refreshOperationalData();
+    } catch (error) {
+      setPanelError(error.message);
+    } finally {
+      setIsSeedingSecurityLab(false);
+    }
+  };
+
+  const optimizedBenchmark = securityBenchmark.optimized;
+  const naiveBenchmark = securityBenchmark.naive;
+  const benchmarkSpeedup = optimizedBenchmark && naiveBenchmark && optimizedBenchmark.durationMs > 0
+    ? (naiveBenchmark.durationMs / optimizedBenchmark.durationMs).toFixed(1)
+    : null;
 
   const handleDelete = async () => {
     const success = await deleteMission(selectedId);
@@ -258,40 +302,6 @@ function Comenzi() {
             <article className={styles.insightCard}>
               <div className={styles.insightHeader}>
                 <div>
-                  <h3>Observation List</h3>
-                  <p>Utilizatori marcati automat pentru comportament suspect.</p>
-                </div>
-                <span className={styles.countBadge}>{observations.length}</span>
-              </div>
-
-              {observations.length === 0 ? (
-                <p className={styles.emptyState}>Niciun utilizator nu se afla in observatie in acest moment.</p>
-              ) : (
-                <div className={styles.insightList}>
-                  {observations.map((observation) => (
-                    <div key={observation.id} className={styles.insightItem}>
-                      <div className={styles.insightMeta}>
-                        <strong>{observation.userName}</strong>
-                        <span className={`${styles.riskBadge} ${observation.riskScore >= 80 ? styles.riskHigh : observation.riskScore >= 65 ? styles.riskMedium : styles.riskLow}`}>
-                          risc {observation.riskScore}
-                        </span>
-                      </div>
-                      <div className={styles.insightMeta}>
-                        <span className={styles.rolePill}>{observation.groupId}</span>
-                        <span>{observation.email}</span>
-                      </div>
-                      <p>{observation.reason}</p>
-                      <p>{observation.details}</p>
-                      <small>Ultima actualizare: {formatDateTime(observation.lastDetectedAtUtc)}</small>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </article>
-
-            <article className={styles.insightCard}>
-              <div className={styles.insightHeader}>
-                <div>
                   <h3>Activity Stream</h3>
                   <p>Actiunile recente ale utilizatorilor autentificati.</p>
                 </div>
@@ -319,6 +329,123 @@ function Comenzi() {
                     </div>
                   ))}
                 </div>
+              )}
+            </article>
+
+            <article className={styles.insightCard}>
+              <div className={styles.insightHeader}>
+                <div>
+                  <h3>Suspicious Activity</h3>
+                  <p>Utilizatori marcati in timp real de motorul de risc pe baza regulilor si de detectorul AI local pentru tentative esuate, acces refuzat, flood pe chat sau drift intre sesiuni.</p>
+                </div>
+                <span className={styles.countBadge}>{observations.length}</span>
+              </div>
+
+              {observations.length === 0 ? (
+                <p className={styles.emptyState}>Nu exista observatii active in acest moment.</p>
+              ) : (
+                <div className={styles.insightList}>
+                  {observations.map((observation) => (
+                    <div key={observation.id} className={styles.insightItem}>
+                      <div className={styles.insightMeta}>
+                        <strong>{observation.userName}</strong>
+                        <span className={`${styles.riskBadge} ${getRiskBadgeClass(observation.riskScore)}`}>
+                          risc {observation.riskScore}
+                        </span>
+                      </div>
+                      <div className={styles.insightMeta}>
+                        <span className={styles.rolePill}>{observation.groupId}</span>
+                        <span>{observation.reason}</span>
+                      </div>
+                      <p>{observation.details}</p>
+                      <small>Ultima detectie: {formatDateTime(observation.lastDetectedAtUtc)}</small>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </article>
+
+            <article className={styles.insightCard}>
+              <div className={styles.insightHeader}>
+                <div>
+                  <h3>Security Lab</h3>
+                  <p>Statistica gold construita peste relatia multi-la-multi dintre roluri si permisiuni, plus detectorul AI local, cu varianta naiva si varianta optimizata prin indecsi si cache.</p>
+                </div>
+                <span className={styles.countBadge}>{optimizedBenchmark?.topRiskUsers?.length ?? 0}</span>
+              </div>
+
+              <div className={styles.insightActions}>
+                <button className={styles.editBtn} disabled={isSeedingSecurityLab} onClick={handleSeedSecurityLab}>
+                  {isSeedingSecurityLab ? 'Se genereaza datele...' : 'Genereaza date de test'}
+                </button>
+                {benchmarkSpeedup && (
+                  <span className={styles.secondaryBtn}>Optimizat x{benchmarkSpeedup}</span>
+                )}
+              </div>
+
+              {seedSummary && (
+                <p className={styles.subtleText}>
+                  Ultimul seed: {seedSummary.createdUsers} utilizatori, {seedSummary.createdMissions} misiuni, {seedSummary.createdActivityLogs} loguri, {seedSummary.suspiciousProfilesSeeded} profile suspecte.
+                </p>
+              )}
+
+              {isBenchmarkLoading && !optimizedBenchmark ? (
+                <p className={styles.emptyState}>Se calculeaza benchmark-ul de securitate...</p>
+              ) : optimizedBenchmark && naiveBenchmark ? (
+                <>
+                  <div className={styles.metricsGrid}>
+                    <div className={styles.metricCard}>
+                      <span className={styles.metricLabel}>Naiv</span>
+                      <strong className={styles.metricValue}>{naiveBenchmark.durationMs} ms</strong>
+                    </div>
+                    <div className={styles.metricCard}>
+                      <span className={styles.metricLabel}>Optimizat</span>
+                      <strong className={styles.metricValue}>{optimizedBenchmark.durationMs} ms</strong>
+                    </div>
+                    <div className={styles.metricCard}>
+                      <span className={styles.metricLabel}>Utilizatori</span>
+                      <strong className={styles.metricValue}>{optimizedBenchmark.totalUsers}</strong>
+                    </div>
+                    <div className={styles.metricCard}>
+                      <span className={styles.metricLabel}>Muchii permisiuni</span>
+                      <strong className={styles.metricValue}>{optimizedBenchmark.totalPermissionAssignments}</strong>
+                    </div>
+                  </div>
+
+                  <div className={styles.insightList}>
+                    {optimizedBenchmark.permissionStatistics.slice(0, 3).map((statistic) => (
+                      <div key={statistic.permissionName} className={styles.insightItem}>
+                        <div className={styles.insightMeta}>
+                          <strong>{statistic.permissionName}</strong>
+                          <span className={styles.rolePill}>{statistic.userCount} utilizatori</span>
+                        </div>
+                        <p>
+                          {statistic.assignmentEdges} asignari, {statistic.successfulActionCount} actiuni reusite, {statistic.failedActionCount} esuate,
+                          {' '}{statistic.observedRiskUsers} utilizatori cu risc observat.
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className={styles.insightList}>
+                    {optimizedBenchmark.topRiskUsers.slice(0, 3).map((user) => (
+                      <div key={user.userId} className={styles.insightItem}>
+                        <div className={styles.insightMeta}>
+                          <strong>{user.fullName}</strong>
+                          <span className={`${styles.riskBadge} ${getRiskBadgeClass(user.riskScore)}`}>
+                            risc {user.riskScore}
+                          </span>
+                        </div>
+                        <p>
+                          {user.failedLogins} login-uri esuate, {user.permissionDenials} accesari refuzate, {user.chatMessagesLastTwoMinutes} mesaje pe chat,
+                          {' '}{user.distinctRecentIpCount} IP-uri recente.
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p className={styles.emptyState}>Benchmark-ul de securitate nu este disponibil inca.</p>
               )}
             </article>
           </section>

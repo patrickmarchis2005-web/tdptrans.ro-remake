@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { fetchChatContacts, fetchChatHistory, sendChatMessage } from '../api/chatApi';
-import { CHAT_WS_URL } from '../api/config';
+import { getChatWsUrl } from '../api/config';
 import { getChatClientKey, getStoredUser, isAdminUser } from '../utils/session';
 import styles from './ChatWidget.module.css';
 
-const hiddenPaths = new Set(['/login', '/signup', '/']);
+const hiddenPaths = new Set(['/login', '/signup', '/recover-password', '/']);
 
 const statusLabels = {
   connecting: 'Conectare',
@@ -141,7 +141,9 @@ const ChatWidget = () => {
 
     const connect = () => {
       setStatus(hasConnectedRef.current ? 'reconnecting' : 'connecting');
-      const socket = new WebSocket(`${CHAT_WS_URL}?userId=${user.id}&clientKey=${encodeURIComponent(clientKey)}`);
+      const socket = new WebSocket(
+        `${getChatWsUrl()}?accessToken=${encodeURIComponent(user.accessToken)}&clientKey=${encodeURIComponent(clientKey)}`
+      );
       socketRef.current = socket;
 
       socket.onopen = () => {

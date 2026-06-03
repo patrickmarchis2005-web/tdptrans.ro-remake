@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { loginUser } from '../api/authApi';
 import { authSchema } from '../utils';
 import { storeUser } from '../utils/session';
@@ -7,8 +7,9 @@ import styles from './styles/Auth.module.css';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
+  const location = useLocation();
+  const [formData, setFormData] = useState({ email: '', password: '', securityCode: '', authenticationPhrase: '' });
+  const [error, setError] = useState(location.state?.message ?? '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLogin = async (event) => {
@@ -53,10 +54,25 @@ const Login = () => {
             autoComplete="current-password"
             onChange={(event) => setFormData({ ...formData, password: event.target.value })}
           />
+          <input
+            type="password"
+            inputMode="numeric"
+            placeholder="Cod de securitate (6 cifre)"
+            autoComplete="one-time-code"
+            maxLength={6}
+            onChange={(event) => setFormData({ ...formData, securityCode: event.target.value })}
+          />
+          <input
+            type="text"
+            placeholder="Fraza de autentificare"
+            autoComplete="off"
+            onChange={(event) => setFormData({ ...formData, authenticationPhrase: event.target.value })}
+          />
           <button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Se autentifica...' : 'Login'}
           </button>
         </form>
+        <p className={styles.switchLink} onClick={() => navigate('/recover-password')}>Ai uitat parola sau codul de securitate?</p>
         <p className={styles.switchLink} onClick={() => navigate('/signup')}>Nu ai cont? Inregistreaza-te!</p>
       </div>
     </div>

@@ -63,5 +63,10 @@ namespace TdpTrans.Repositories.Implementations
                 .ThenBy(user => user.Email)
                 .ToListAsync();
         }
+
+        public async Task SaveChanges()
+        {
+            await _context.SaveChangesAsync();
+        }
     }
 }

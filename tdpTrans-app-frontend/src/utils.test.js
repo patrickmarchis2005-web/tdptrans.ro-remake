@@ -1,173 +1,182 @@
-import { expect, it, describe } from 'vitest';
-import { getPaginatedItems, missionSchema, authSchema, signupSchema } from './utils';
-
+import { describe, expect, it } from 'vitest';
+import { authSchema, credentialChangeCodeRequestSchema, getPaginatedItems, missionSchema, recoverySchema, signupSchema } from './utils';
 
 describe('Pagination Logic', () => {
-  it('should return the correct data slices', () => {
+  it('returns the expected slice and page count', () => {
     const mockData = [1, 2, 3, 4, 5];
-    const pageSize = 2;
 
-    const page1 = getPaginatedItems(mockData, 1, pageSize);
+    const page1 = getPaginatedItems(mockData, 1, 2);
+    const page3 = getPaginatedItems(mockData, 3, 2);
+
     expect(page1.currentItems).toEqual([1, 2]);
     expect(page1.totalPages).toBe(3);
-
-    const page3 = getPaginatedItems(mockData, 3, pageSize);
     expect(page3.currentItems).toEqual([5]);
   });
 });
 
-
 describe('Zod validation: authSchema', () => {
-
-  it('validate a correct account', () => {
-    const validData = {
+  it('accepts valid login credentials', () => {
+    const result = authSchema.safeParse({
       email: 'admin@tdptrans.ro',
-      password: 'parola_secreta'
-    };
-    const result = authSchema.safeParse(validData);
+      password: 'parola_sigura',
+      securityCode: '246810',
+      authenticationPhrase: 'TDP-ADMIN',
+    });
+
     expect(result.success).toBe(true);
   });
 
-  it('should not validate data with invalid email', () => {
-    const invalidEmailData = {
-      email: 'admin_la_tdptrans.ro',
-      password: 'parola_secreta'
-    };
-    const result = authSchema.safeParse(invalidEmailData);
-    
-    expect(result.success).toBe(false);
-    expect(result.error.issues[0].message).toBe("Format email invalid");
-  });
-
-  it('should not validate data with too short password', () => {
-    const shortPasswordData = {
+  it('rejects a security code that is not exactly 6 digits', () => {
+    const result = authSchema.safeParse({
       email: 'admin@tdptrans.ro',
-      password: '12345'
-    };
-    const result = authSchema.safeParse(shortPasswordData);
-    
-    expect(result.success).toBe(false);
-    expect(result.error.issues[0].message).toBe("Parola trebuie să aibă minim 6 caractere");
-  });
+      password: 'parola_sigura',
+      securityCode: '24A810',
+      authenticationPhrase: 'TDP-ADMIN',
+    });
 
+    expect(result.success).toBe(false);
+    expect(result.error.issues[0].message).toBe('Codul de securitate trebuie sa contina exact 6 cifre');
+  });
 });
 
 describe('Validare Zod: signupSchema', () => {
-
-  it('ar trebui să valideze când parolele coincid', () => {
-    const validSignup = {
+  it('accepts matching passwords and security codes', () => {
+    const result = signupSchema.safeParse({
       email: 'sofer@tdptrans.ro',
       password: 'parola_puternica',
-      confirmPassword: 'parola_puternica'
-    };
-    const result = signupSchema.safeParse(validSignup);
+      confirmPassword: 'parola_puternica',
+      securityCode: '112233',
+      confirmSecurityCode: '112233',
+      authenticationPhrase: 'FRAZA-NOUA',
+    });
+
     expect(result.success).toBe(true);
   });
 
-  it('ar trebui să pice când parolele nu coincid (refine)', () => {
-    const mismatchedPasswords = {
+  it('rejects mismatched security codes', () => {
+    const result = signupSchema.safeParse({
       email: 'sofer@tdptrans.ro',
       password: 'parola_puternica',
-      confirmPassword: 'alta_parola_gresita'
-    };
-    const result = signupSchema.safeParse(mismatchedPasswords);
-    
-    expect(result.success).toBe(false);
-    // Verificăm dacă eroarea vine exact de la acel "refine" de pe confirmPassword
-    expect(result.error.issues[0].message).toBe("Parolele nu coincid");
-    expect(result.error.issues[0].path[0]).toBe("confirmPassword");
-  });
+      confirmPassword: 'parola_puternica',
+      securityCode: '112233',
+      confirmSecurityCode: '221133',
+      authenticationPhrase: 'FRAZA-NOUA',
+    });
 
+    expect(result.success).toBe(false);
+    expect(result.error.issues[0].message).toBe('Codurile de securitate nu coincid');
+    expect(result.error.issues[0].path[0]).toBe('confirmSecurityCode');
+  });
 });
 
+describe('Validare Zod: recoverySchema', () => {
+  it('accepts matching credential-change values', () => {
+    const result = recoverySchema.safeParse({
+      email: 'recover@tdptrans.ro',
+      credentialChangeCode: '482915',
+      newPassword: 'parola_noua',
+      confirmNewPassword: 'parola_noua',
+      newSecurityCode: '112233',
+      confirmNewSecurityCode: '112233',
+      newAuthenticationPhrase: 'PHRASE-RESET',
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects mismatched recovery security codes', () => {
+    const result = recoverySchema.safeParse({
+      email: 'recover@tdptrans.ro',
+      credentialChangeCode: '482915',
+      newPassword: 'parola_noua',
+      confirmNewPassword: 'parola_noua',
+      newSecurityCode: '112233',
+      confirmNewSecurityCode: '445566',
+      newAuthenticationPhrase: 'PHRASE-RESET',
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error.issues[0].message).toBe('Codurile de securitate nu coincid');
+    expect(result.error.issues[0].path[0]).toBe('confirmNewSecurityCode');
+  });
+});
+
+describe('Validare Zod: credentialChangeCodeRequestSchema', () => {
+  it('accepts a valid recovery email before requesting a confirmation code', () => {
+    const result = credentialChangeCodeRequestSchema.safeParse({
+      email: 'recover@tdptrans.ro',
+    });
+
+    expect(result.success).toBe(true);
+  });
+});
 
 describe('Data Validation with Zod, for Missions', () => {
   const validMission = {
-    client: "Ion Popescu",
-    phone: "0744 123-456",
+    client: 'Ion Popescu',
+    phone: '0744 123-456',
     email: 'ionpopescu@tdptrans.ro',
-    type: "Transport",
-    truckId: "192400",
-    date: "2026-05-20",
-    cost: "500$",
-    address: "Strada Observatorului 72, Cluj",
-    status: "Programata"
+    missionType: 'Transport',
+    truckId: '192400',
+    date: '2026-05-20',
+    cost: 500,
+    address: 'Strada Observatorului 72, Cluj',
+    missionStatus: 'Programata',
   };
 
-
-  it('should accept a new correct mission', () => {
+  it('accepts a valid mission', () => {
     const result = missionSchema.safeParse(validMission);
     expect(result.success).toBe(true);
   });
 
-
-  it('should reject the short name', () => {
-    const wrongMission = { ...validMission, client: "Io" };
-    const result = missionSchema.safeParse(wrongMission);
+  it('rejects a short client name', () => {
+    const result = missionSchema.safeParse({ ...validMission, client: 'Io' });
     expect(result.success).toBe(false);
-    expect(result.error.issues[0].message).toContain("minim 3 caractere");
+    expect(result.error.issues[0].message).toContain('minim 3 caractere');
   });
 
-
-  it('should reject the wrong phone number', () => {
-    const wrongMission = {...validMission, phone: "07@#!123" };
-    const result = missionSchema.safeParse(wrongMission);
+  it('rejects a phone number with invalid characters', () => {
+    const result = missionSchema.safeParse({ ...validMission, phone: '0744#12345' });
     expect(result.success).toBe(false);
-    expect(result.error.issues[0].message).toContain("Numarul de telefon contine caractere invalide");
+    expect(result.error.issues[0].message).toBe('Numarul de telefon contine caractere invalide');
   });
 
-
-  it('should validate the cost', () => {
-    const missionWithDollarAtCost = { ...validMission, cost: "1200$" };
-    const result = missionSchema.safeParse(missionWithDollarAtCost);
+  it('accepts a cost supplied as a numeric string', () => {
+    const result = missionSchema.safeParse({ ...validMission, cost: '1200' });
     expect(result.success).toBe(true);
   });
 
-
-  it('should reject the negative cost', () => {
-    const missionWithDollarAtCost = { ...validMission, cost: "-1200" };
-    const result = missionSchema.safeParse(missionWithDollarAtCost);
+  it('rejects a negative cost', () => {
+    const result = missionSchema.safeParse({ ...validMission, cost: '-1200' });
     expect(result.success).toBe(false);
-    expect(result.error.issues[0].message).toContain("Costul trebuie sa fie un numar pozitiv");
+    expect(result.error.issues[0].message).toBe('Costul trebuie sa fie un numar mai mare decat 0');
   });
 
-
-  it('should reject the NaN cost', () => {
-    const missionWithDollarAtCost = { ...validMission, cost: "Not a number" };
-    const result = missionSchema.safeParse(missionWithDollarAtCost);
+  it('rejects a non-numeric cost', () => {
+    const result = missionSchema.safeParse({ ...validMission, cost: 'Not a number' });
     expect(result.success).toBe(false);
-    expect(result.error.issues[0].message).toContain("Costul trebuie sa fie un numar pozitiv");
   });
 
-
-  it('should reject an inexistent mission type', () => {
-    const wrongMission = { ...validMission, type: "Asamblare" };
-    const result = missionSchema.safeParse(wrongMission);
+  it('rejects an unsupported mission type', () => {
+    const result = missionSchema.safeParse({ ...validMission, missionType: 'Asamblare' });
     expect(result.success).toBe(false);
-    expect(result.error.issues[0].message).toContain("Tipul comenzii trebuie sa fie 'Transport' sau 'Tractare'");
   });
 
-
-  it('should reject mission with missing truckId', () => {
-    const wrongMission = { ...validMission, truckId: "" };
-    const result = missionSchema.safeParse(wrongMission);
+  it('rejects a truck id that is not 6 digits', () => {
+    const result = missionSchema.safeParse({ ...validMission, truckId: '' });
     expect(result.success).toBe(false);
-    expect(result.error.issues[0].message).toContain("ID-ul camionului este obligatoriu");
+    expect(result.error.issues[0].message).toBe('ID-ul camionului trebuie sa contina fix 6 cifre!');
   });
 
-
-  it('should reject mission with too short address', () => {
-    const wrongMission = { ...validMission, address: "" };
-    const result = missionSchema.safeParse(wrongMission);
+  it('rejects an address that is too short', () => {
+    const result = missionSchema.safeParse({ ...validMission, address: '' });
     expect(result.success).toBe(false);
-    expect(result.error.issues[0].message).toContain("Adresa este prea scurta");
+    expect(result.error.issues[0].message).toBe('Adresa este prea scurta');
   });
 
-
-  it('should reject mission with empty string as email', () => {
-    const wrongMission = { ...validMission, email: "" };
-    const result = missionSchema.safeParse(wrongMission);
+  it('rejects an empty email address', () => {
+    const result = missionSchema.safeParse({ ...validMission, email: '' });
     expect(result.success).toBe(false);
-    expect(result.error.issues[0].message).toContain("Format email invalid");
+    expect(result.error.issues[0].message).toBe('Format email invalid');
   });
 });

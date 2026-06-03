@@ -10,5 +10,6 @@ namespace TdpTrans.Repositories.Interfaces
         Task<AppRole?> GetRoleByName(string roleName);
         Task<AppUser> AddUser(AppUser user);
         Task AddUserRole(UserRole userRole);
+        Task SaveChanges();
     }
 }

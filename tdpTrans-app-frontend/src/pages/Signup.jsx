@@ -7,7 +7,15 @@ import styles from './styles/Auth.module.css';
 
 const Signup = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ fullName: '', email: '', password: '', confirmPassword: '' });
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    securityCode: '',
+    confirmSecurityCode: '',
+    authenticationPhrase: '',
+  });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -18,6 +26,9 @@ const Signup = () => {
       email: formData.email,
       password: formData.password,
       confirmPassword: formData.confirmPassword,
+      securityCode: formData.securityCode,
+      confirmSecurityCode: formData.confirmSecurityCode,
+      authenticationPhrase: formData.authenticationPhrase,
     });
 
     if (!result.success) {
@@ -35,8 +46,10 @@ const Signup = () => {
       setError('');
       const authenticatedUser = await signupUser({
         fullName: formData.fullName.trim(),
-        email: formData.email.trim(),
-        password: formData.password,
+        email: result.data.email,
+        password: result.data.password,
+        securityCode: result.data.securityCode,
+        authenticationPhrase: result.data.authenticationPhrase,
       });
       storeUser(authenticatedUser);
       window.location.href = '/acasa';
@@ -77,6 +90,28 @@ const Signup = () => {
             placeholder="Confirma parola"
             autoComplete="new-password"
             onChange={(event) => setFormData({ ...formData, confirmPassword: event.target.value })}
+          />
+          <input
+            type="password"
+            inputMode="numeric"
+            placeholder="Cod de securitate (6 cifre)"
+            autoComplete="one-time-code"
+            maxLength={6}
+            onChange={(event) => setFormData({ ...formData, securityCode: event.target.value })}
+          />
+          <input
+            type="password"
+            inputMode="numeric"
+            placeholder="Confirma codul de securitate"
+            autoComplete="one-time-code"
+            maxLength={6}
+            onChange={(event) => setFormData({ ...formData, confirmSecurityCode: event.target.value })}
+          />
+          <input
+            type="text"
+            placeholder="Fraza de autentificare"
+            autoComplete="off"
+            onChange={(event) => setFormData({ ...formData, authenticationPhrase: event.target.value })}
           />
           <button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Se creeaza contul...' : 'Signup'}

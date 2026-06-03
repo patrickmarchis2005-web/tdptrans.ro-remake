@@ -10,7 +10,7 @@ export const missionSchema = z.object({
   email: z.string().email("Format email invalid"),
 
   cost: z.coerce.number({
-      invalid_type_error: "Costul trebuie să fie un număr valid"
+      invalid_type_error: "Costul trebuie sa fie un numar valid"
     })
     .positive("Costul trebuie sa fie un numar mai mare decat 0"),
 
@@ -20,7 +20,7 @@ export const missionSchema = z.object({
   }),
 
   truckId: z.coerce.string().regex(/^[0-9]{6}$/, "ID-ul camionului trebuie sa contina fix 6 cifre!"),
-  
+
   address: z.string().min(5, "Adresa este prea scurta"),
 
   date: z.string().min(1, "Data este obligatorie!"),
@@ -30,7 +30,6 @@ export const missionSchema = z.object({
     required_error: "Statusul comenzii este obligatoriu"
   })
 });
-
 
 export const getPaginatedItems = (items, currentPage, itemsPerPage) => {
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -46,19 +45,49 @@ export const getPaginatedItems = (items, currentPage, itemsPerPage) => {
   };
 };
 
+const authenticationPhraseSchema = z.string()
+  .trim()
+  .min(6, "Fraza de autentificare trebuie sa aiba intre 6 si 64 de caractere")
+  .max(64, "Fraza de autentificare trebuie sa aiba intre 6 si 64 de caractere");
 
 export const authSchema = z.object({
-  email: z.string().email("Format email invalid"),
-  password: z.string().min(6, "Parola trebuie să aibă minim 6 caractere"),
+  email: z.string().trim().email("Format email invalid"),
+  password: z.string().min(8, "Parola trebuie sa aiba minim 8 caractere"),
+  securityCode: z.string().trim().regex(/^\d{6}$/, "Codul de securitate trebuie sa contina exact 6 cifre"),
+  authenticationPhrase: authenticationPhraseSchema,
 });
 
+export const credentialChangeCodeRequestSchema = z.object({
+  email: z.string().trim().email("Format email invalid"),
+});
 
 export const signupSchema = z.object({
-  email: z.string().email("Format email invalid"),
-  password: z.string().min(6, "Parola trebuie să aibă minim 6 caractere"),
-  confirmPassword: z.string()
+  email: z.string().trim().email("Format email invalid"),
+  password: z.string().min(8, "Parola trebuie sa aiba minim 8 caractere"),
+  confirmPassword: z.string(),
+  securityCode: z.string().trim().regex(/^\d{6}$/, "Codul de securitate trebuie sa contina exact 6 cifre"),
+  confirmSecurityCode: z.string().trim(),
+  authenticationPhrase: authenticationPhraseSchema,
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Parolele nu coincid",
   path: ["confirmPassword"],
+}).refine((data) => data.securityCode === data.confirmSecurityCode, {
+  message: "Codurile de securitate nu coincid",
+  path: ["confirmSecurityCode"],
 });
 
+export const recoverySchema = z.object({
+  email: z.string().trim().email("Format email invalid"),
+  credentialChangeCode: z.string().trim().regex(/^\d{6}$/, "Codul de confirmare trebuie sa contina exact 6 cifre"),
+  newPassword: z.string().min(8, "Parola trebuie sa aiba minim 8 caractere"),
+  confirmNewPassword: z.string(),
+  newSecurityCode: z.string().trim().regex(/^\d{6}$/, "Codul de securitate trebuie sa contina exact 6 cifre"),
+  confirmNewSecurityCode: z.string().trim(),
+  newAuthenticationPhrase: authenticationPhraseSchema,
+}).refine((data) => data.newPassword === data.confirmNewPassword, {
+  message: "Parolele nu coincid",
+  path: ["confirmNewPassword"],
+}).refine((data) => data.newSecurityCode === data.confirmNewSecurityCode, {
+  message: "Codurile de securitate nu coincid",
+  path: ["confirmNewSecurityCode"],
+});

@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/coverage/
+**/.playwright-artifacts/
+**/playwright-report/
+**/test-results/
+.git/
+tmp-chat-test/
+tdpTrans-app-backend.zip

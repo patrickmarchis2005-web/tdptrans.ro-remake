@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: tdptrans-api
+    runtime: docker
+    plan: free
+    dockerContext: .
+    dockerfilePath: ./tdpTrans-app-backend/Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false

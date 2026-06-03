@@ -5,6 +5,9 @@ namespace TdpTrans.Models
         public const string LoginSucceeded = "auth.login.succeeded";
         public const string LoginFailed = "auth.login.failed";
         public const string SignupCreated = "auth.signup.created";
+        public const string LogoutSucceeded = "auth.logout.succeeded";
+        public const string PasswordRecoverySucceeded = "auth.recovery.succeeded";
+        public const string PasswordRecoveryFailed = "auth.recovery.failed";
         public const string PermissionDenied = "security.permission.denied";
         public const string MissionsViewed = "missions.viewed";
         public const string MissionCreated = "missions.created";
@@ -15,7 +18,9 @@ namespace TdpTrans.Models
         public const string ChatDisconnected = "chat.disconnected";
         public const string ChatHistoryViewed = "chat.history.viewed";
         public const string ChatMessageSent = "chat.message.sent";
-        public const string ObservationsViewed = "admin.observations.viewed";
         public const string LogsViewed = "admin.logs.viewed";
+        public const string ObservationsViewed = "admin.observations.viewed";
+        public const string SecurityStatisticsViewed = "admin.security-statistics.viewed";
+        public const string SecuritySeedGenerated = "admin.security-seed.generated";
     }
 }

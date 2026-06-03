@@ -34,11 +34,27 @@ namespace TdpTrans.Services
                 return;
             }
 
-            if (!int.TryParse(context.Request.Query["userId"], out var userId))
+            var accessToken = context.Request.Query["accessToken"].ToString();
+            if (string.IsNullOrWhiteSpace(accessToken))
             {
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 return;
             }
+
+            SessionActor? actor;
+            using (var authScope = _serviceScopeFactory.CreateScope())
+            {
+                var authSessionService = authScope.ServiceProvider.GetRequiredService<IAuthSessionService>();
+                actor = await authSessionService.Authenticate(accessToken);
+            }
+
+            if (actor == null)
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return;
+            }
+
+            var userId = actor.UserId;
 
             var clientKey = context.Request.Query["clientKey"].ToString();
             if (string.IsNullOrWhiteSpace(clientKey))
@@ -76,7 +92,14 @@ namespace TdpTrans.Services
                         continue;
                     }
 
-                    using var messageScope = _serviceScopeFactory.CreateScope();
+                using var messageScope = _serviceScopeFactory.CreateScope();
+                    var authSessionService = messageScope.ServiceProvider.GetRequiredService<IAuthSessionService>();
+                    var refreshedActor = await authSessionService.Authenticate(accessToken);
+                    if (refreshedActor == null)
+                    {
+                        break;
+                    }
+
                     var chatService = messageScope.ServiceProvider.GetRequiredService<IChatService>();
                     var createdMessage = await chatService.CreateMessage(userId, payload.RecipientUserId, payload.Message);
                     await _connectionManager.BroadcastToUsers(

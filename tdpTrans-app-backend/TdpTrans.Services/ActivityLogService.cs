@@ -60,10 +60,17 @@ namespace TdpTrans.Services
                 TimestampUtc = DateTime.UtcNow
             });
 
-            if (user?.Id is int actorId)
+            if (user?.Id != null && ShouldEvaluateSuspiciousActivity(actionType))
             {
-                await _suspiciousActivityService.Evaluate(actorId);
+                await _suspiciousActivityService.Evaluate(user.Id);
             }
+        }
+
+        private static bool ShouldEvaluateSuspiciousActivity(string actionType)
+        {
+            return actionType == ActivityActionNames.LoginFailed
+                || actionType == ActivityActionNames.PermissionDenied
+                || actionType == ActivityActionNames.ChatMessageSent;
         }
     }
 }
